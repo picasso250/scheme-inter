@@ -3,10 +3,62 @@
 # number
 # string
 
+# key: cur_state
+# value: cur_char, next_state, callback(char, literal, token) => (literal, token, ErrorMessage)
+when_normal = [
+    ['(', 'normal', lambda c, i, t: None, {'type': 'left parenthesis'}, None],
+    [')', 'normal', lambda c, i, t: None, {'type': 'right parenthesis'}, None],
+    [lambda c: c.isdigit(), 'digit', lambda c, i, t: c, None, None],
+    [lambda c: c.isalpha(), 'token', lambda c, i, t: c, None, None],
+    [lambda c: c.isspace(), 'token', lambda c, i, t: c, None, None],
+    ['"', 'string', lambda c, i, t: '', None, None],
+    [True, 'error', lambda c, i, t: None, None, 'unexpected '+c],
+    ]
+when_digit = [
+    [lambda c: c.isdigit() or c == '.', 'digit', lambda c, i, t: i+c, None],
+    [lambda c: c.isspace(), 'normal', lambda c, i, t: None, {'type': 'digit', 'liter': i}],
+    [True, 'error', lambda c, i, t: None, None, 'digit '+literal+', should not follow by '+char],
+    ]
+when_token = [
+    [lambda c: c.isalpha() or c.isdigit() or c == '-' or c == '_', 'token', lambda c, i, t: i+c, None],
+    [lambda c: c.isspace(), 'normal', lambda c, i, t: None, {'type': 'digit', 'liter': i}],
+    [True, 'error', lambda c, i, t: None, None, 'digit '+literal+', should not follow by '+char],
+    ]
+when_string = [
+    ['"', 'normal', lambda c, i, t: None, {'type': 'string', 'liter': i}, None],
+    ['\\', 'escape', lambda c, i, t: None, None, None],
+    [True, 'error', lambda c, i, t: i+c, None, None, None],
+    ]
+escape_table = {
+    'n': "\n",
+    'r': "\r",
+    't': "\t",
+    'v': "\v",
+    }
+when_escape = [
+    ['n', 'string', lambda c, i, t: escape_table[c], None, None],
+    [True, 'string', lambda c, i, t: i+'\\'+c, None, None],
+    ]
+transfer_table = {
+    'normal': when_normal,
+    'digit': when_digit,
+    'token': when_token,
+    'string': when_string,
+    'escape': when_escape
+    }
+def token(code):
+    tokens = []
+    state = 'normal'
+    literal = ''
+    for char in code:
+        
+        pass
+
 def grammer(code):
     ast = []
     print('first char', code[0])
-    
+    for char in code:
+        print(char)
     return ast
 
 def sum_(params):
@@ -110,6 +162,8 @@ statement = {
         ]
     }
 ast = [statement]
-#ast = grammer(code)
+tokens = token(code)
+print('tokens', tokens)
+ast = grammer(tokens)
 val = evalue(ast)
 print(val)
