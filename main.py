@@ -5,29 +5,31 @@
 
 # key: cur_state
 # value: cur_char, next_state, callback(char, literal, token) => (literal, token, ErrorMessage)
+
 when_normal = [
-    ['(', 'normal', lambda c, i, t: None, {'type': 'left parenthesis'}, None],
-    [')', 'normal', lambda c, i, t: None, {'type': 'right parenthesis'}, None],
-    [lambda c: c.isdigit(), 'digit', lambda c, i, t: c, None, None],
-    [lambda c: c.isalpha(), 'token', lambda c, i, t: c, None, None],
-    [lambda c: c.isspace(), 'token', lambda c, i, t: c, None, None],
-    ['"', 'string', lambda c, i, t: '', None, None],
-    [True, 'error', lambda c, i, t: None, None, 'unexpected '+c],
+    [lambda c: c == '(', 'normal', lambda c, i: (None, [{'type': 'left parenthesis'}], None)],
+    [lambda c: c == ')', 'normal', lambda c, i: (None, [{'type': 'right parenthesis'}], None)],
+    [lambda c: c.isdigit(), 'digit', lambda c, i: (c, None, None)],
+    [lambda c: c.isspace(), 'normal', lambda c, i: (None, None, None)],
+    [lambda c: c == '"', 'string', lambda c, i: ('', None, None)],
+    [lambda c: True, 'token', lambda c, i: (c, None, None)],
     ]
 when_digit = [
-    [lambda c: c.isdigit() or c == '.', 'digit', lambda c, i, t: i+c, None],
-    [lambda c: c.isspace(), 'normal', lambda c, i, t: None, {'type': 'digit', 'liter': i}],
-    [True, 'error', lambda c, i, t: None, None, 'digit '+literal+', should not follow by '+char],
+    [lambda c: c.isdigit() or c == '.', 'digit', lambda c, i: (i+c, None, None)],
+    [lambda c: c.isspace(), 'normal', lambda c, i: (None, [{'type': 'digit', 'liter': i}], None)],
+    [lambda c: c == ')', 'normal', lambda c, i: (None, [{'type': 'digit', 'liter': i}, {'type': 'right parenthesis'}], None)],
+    [lambda c: True, 'error', lambda c, i: (None, None, 'digit '+literal+', should not follow by '+char)],
     ]
 when_token = [
-    [lambda c: c.isalpha() or c.isdigit() or c == '-' or c == '_', 'token', lambda c, i, t: i+c, None],
-    [lambda c: c.isspace(), 'normal', lambda c, i, t: None, {'type': 'digit', 'liter': i}],
-    [True, 'error', lambda c, i, t: None, None, 'digit '+literal+', should not follow by '+char],
+    [lambda c: c.isalpha() or c.isdigit() or c == '-' or c == '_', 'token', lambda c, i: (i+c, None)],
+    [lambda c: c.isspace(), 'normal', lambda c, i: (None, [{'type': 'token', 'liter': i}], None)],
+    [lambda c: c == ')', 'normal', lambda c, i: (None, [{'type': 'token', 'liter': i}, {'type': 'right parenthesis'}], None)],
+    [lambda c: True, 'error', lambda c, i: (None, None, 'digit '+literal+', should not follow by '+char)],
     ]
 when_string = [
-    ['"', 'normal', lambda c, i, t: None, {'type': 'string', 'liter': i}, None],
-    ['\\', 'escape', lambda c, i, t: None, None, None],
-    [True, 'error', lambda c, i, t: i+c, None, None, None],
+    [lambda c: c == '"', 'normal', lambda c, i: (None, [{'type': 'string', 'liter': i}], None)],
+    [lambda c: c == '\\', 'escape', lambda c, i: (None, None, None)],
+    [lambda c: True, 'error', lambda c, i: (i+c, None, None, None)],
     ]
 escape_table = {
     'n': "\n",
@@ -36,23 +38,53 @@ escape_table = {
     'v': "\v",
     }
 when_escape = [
-    ['n', 'string', lambda c, i, t: escape_table[c], None, None],
-    [True, 'string', lambda c, i, t: i+'\\'+c, None, None],
+    [lambda c: c == 'n', 'string', lambda c, i: (escape_table[c], None, None)],
+    [lambda c: True, 'string', lambda c, i: (i+'\\'+c, None, None)],
     ]
-transfer_table = {
+trans_table = {
     'normal': when_normal,
     'digit': when_digit,
     'token': when_token,
     'string': when_string,
     'escape': when_escape
     }
+
 def token(code):
+    print('code', code)
     tokens = []
     state = 'normal'
-    literal = ''
+    liter = ''
+    ln = 1
+    col = 0
     for char in code:
-        
-        pass
+        print('char =', char, 'state', state)
+        if state not in trans_table:
+            print('Error:', state, 'not in trans table')
+            return None
+        entries = trans_table[state]
+        for entry in entries:
+            #print('.')
+            char_cond = entry[0]
+            next_state = entry[1]
+            callback = entry[2]
+            if char_cond(char):
+                print('next state', next_state)
+                liter, token, msg = callback(char, liter)
+                if token is not None:
+                    print(token)
+                    tokens += (token)
+                elif liter is None and token is None:
+                    print('line', ln, 'col', col, msg)
+                    return None
+                state = next_state
+                
+                break;
+        col += 1
+        if char == "\n":
+            ln += 1
+            col = 0
+    print('tokens', tokens)
+    return tokens
 
 def grammer(code):
     ast = []
