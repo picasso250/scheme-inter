@@ -71,7 +71,7 @@ def token(code):
                 print('next state', next_state)
                 liter, token, msg = callback(char, liter)
                 if token is not None:
-                    print(token)
+                    #print(token)
                     tokens += (token)
                 elif liter is None and token is None:
                     print('line', ln, 'col', col, msg)
@@ -86,12 +86,48 @@ def token(code):
     print('tokens', tokens)
     return tokens
 
-def grammer(code):
-    ast = []
-    print('first char', code[0])
-    for char in code:
-        print(char)
-    return ast
+'''return an expression'''
+def grammer_iter(tokens):
+    print('parse', tokens)
+    if len(tokens) == 0:
+        return [], []
+    l = []
+    while len(tokens) > 0:
+        token = tokens[0]
+        print('for token', token)
+        left = tokens[1:]
+        if token['type'] == 'left parenthesis':
+            print('enter with', left)
+            il, left = grammer_iter(left)
+            l.append(il)
+        elif token['type'] == 'right parenthesis':
+            return l, left
+        else:
+            print('apeend', token)
+            l.append(token)
+        tokens = left
+    print('Error, after ) left', left)
+    return None, None
+
+'''return a list of expressions'''
+def grammer(tokens):
+    if len(tokens) == 0:
+        print('no tokens')
+        return []
+    token = tokens[0]
+    token_type = token['type']
+    if token_type == 'left parenthesis':
+        print('enter with', tokens[1:])
+        ast, left = grammer_iter(tokens[1:])
+        if len(left) == 0:
+            return [ast]
+        else:
+            return grammer(left)
+    elif token_type == 'right parenthesis':
+        print('Eorror, )')
+        return None
+    else:
+        return [token] + grammer(tokens[1:])
 
 def sum_(params):
     if len(params) == 0:
@@ -197,5 +233,6 @@ ast = [statement]
 tokens = token(code)
 print('tokens', tokens)
 ast = grammer(tokens)
-val = evalue(ast)
-print(val)
+print ('ast', ast)
+#val = evalue(ast)
+#print(val)
