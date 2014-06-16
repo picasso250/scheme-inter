@@ -134,7 +134,7 @@ def sum_(params):
         print('+ with no params')
         return None
     for p in params:
-        if p['type'] != 'number':
+        if p['type'] != 'digit':
             print('Error: type is not number, but', p['type'])
             return None
     int_list = [i['value'] for i in params]
@@ -146,7 +146,7 @@ def sub_(params):
         print('- with no params')
         return 0
     for p in params:
-        if p['type'] != 'number':
+        if p['type'] != 'digit':
             print('Error: type is not number, but', p['type'])
             return 0
     i = params.pop(0)['value']
@@ -158,7 +158,7 @@ def mul_(params):
         return 0
     s = 1
     for p in params:
-        if p['type'] != 'number':
+        if p['type'] != 'digit':
             print('Error: type is not number, but', p['type'])
             return 0
         else:
@@ -170,7 +170,7 @@ def div_(params):
         print('/ with no params')
         return 0
     for p in params:
-        if p['type'] != 'number':
+        if p['type'] != 'digit':
             print('Error: type is not number, but', p['type'])
             return 0
     i = params.pop(0)['value']
@@ -186,6 +186,20 @@ def mod_(params):
         return 0
     return params[0]['value'] % params[1]['value']
 
+def evalue_node(node):
+    node_type = node['type']
+    node_liter = node['liter']
+    if node_type == 'number':
+        return float(node_liter)
+    if node_type == 'string':
+        return node_liter
+    print('Error,', node_type, 'can not be evaluated')
+    return None
+
+def evalue_list(list_):
+    for e in list_:
+        
+
 func_table = {
     '+': sum_,
     '-': sub_,
@@ -194,21 +208,29 @@ func_table = {
     '%': mod_
     }
 
-def evalue_statement(statement):
-    pass
-    name = statement['oper']['name']
-    print('lambda name', name)
-    if name not in func_table:
-        print('there is no lambda name', name)
-        return None
-    func = func_table[name]
-    return func(statement['params'])
+def evalue_expr(expr):
+    if isinstance(expr, list):
+        lmd = expr[0]
+        lmd_type = lmd['type']
+        if lmd_type != 'token':
+            print('Error, type of head element of list should be token,', lmd_type, 'given')
+            return None
+        name = lmd['liter']
+        print('lambda name', name)
+        if name not in func_table:
+            print('there is no lambda name', name)
+            return None
+        func = func_table[name]
+        param_list = evalue_list(expr[1:])
+        return func(param_list)
+    else:
+        return evalue_node(expr)
 
 def evalue(ast):
     if len(ast) == 0:
         return None
-    for statement in ast:
-        val = evalue_statement(statement)
+    for expr in ast:
+        val = evalue_expr(expr)
     return val
 
 code = '(+ 137 349)';
@@ -234,5 +256,5 @@ tokens = token(code)
 print('tokens', tokens)
 ast = grammer(tokens)
 print ('ast', ast)
-#val = evalue(ast)
-#print(val)
+val = evalue(ast)
+print(val)
