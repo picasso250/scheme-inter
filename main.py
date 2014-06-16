@@ -133,13 +133,8 @@ def sum_(params):
     if len(params) == 0:
         print('+ with no params')
         return None
-    for p in params:
-        if p['type'] != 'digit':
-            print('Error: type is not number, but', p['type'])
-            return None
-    int_list = [i['value'] for i in params]
-    print('sum of', int_list)
-    return sum(int_list)
+    
+    return sum(params)
 
 def sub_(params):
     if len(params) == 0:
@@ -189,7 +184,7 @@ def mod_(params):
 def evalue_node(node):
     node_type = node['type']
     node_liter = node['liter']
-    if node_type == 'number':
+    if node_type == 'digit':
         return float(node_liter)
     if node_type == 'string':
         return node_liter
@@ -197,8 +192,7 @@ def evalue_node(node):
     return None
 
 def evalue_list(list_):
-    for e in list_:
-        
+    return [evalue_node(e) for e in list_]
 
 func_table = {
     '+': sum_,
@@ -221,7 +215,9 @@ def evalue_expr(expr):
             print('there is no lambda name', name)
             return None
         func = func_table[name]
+        print('param list', expr[1:])
         param_list = evalue_list(expr[1:])
+        print('param list', param_list)
         return func(param_list)
     else:
         return evalue_node(expr)
