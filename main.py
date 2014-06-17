@@ -48,3 +48,4 @@ statement = {
 
 evalue_code('(define size 2)')
 evalue_code('size')
+evalue_code('(* 5 size)')

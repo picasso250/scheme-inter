@@ -138,7 +138,7 @@ def sum_(params):
         print('+ with no params')
         return None
     for p in params:
-        if not isinstance(p, list) and p['type'] != 'digit':
+        if not isinstance(p, list) and p['type'] != 'token' and p['type'] != 'digit':
             print('Error: type is not number, but', p['type'])
             return 0
     return sum([evalue_expr(e) for e in params])
@@ -149,7 +149,7 @@ def sub_(params):
         return 0
     i = 0
     for p in params:
-        if not isinstance(p, list) and p['type'] != 'digit':
+        if not isinstance(p, list) and p['type'] != 'token' and p['type'] != 'digit':
             print('Error: type is not number, but', p['type'])
             return 0
         if i == 0:
@@ -165,7 +165,7 @@ def mul_(params):
         return 0
     s = 1
     for p in params:
-        if not isinstance(p, list) and p['type'] != 'digit':
+        if not isinstance(p, list) and p['type'] != 'token' and p['type'] != 'digit':
             print('Error: type is not number, but', p['type'])
             return 0
         else:
@@ -178,7 +178,7 @@ def div_(params):
         return 0
     i = 0
     for p in params:
-        if not isinstance(p, list) and p['type'] != 'digit':
+        if not isinstance(p, list) and p['type'] != 'token' and p['type'] != 'digit':
             print('Error: type is not number, but', p['type'])
             return 0
         if i == 0:
@@ -197,7 +197,7 @@ def mod_(params):
         print('% need 2 params,', len_params, 'given')
         return 0
     for p in params:
-        if not isinstance(p, list) and p['type'] != 'digit':
+        if not isinstance(p, list) and p['type'] != 'token' and p['type'] != 'digit':
             print('Error: type is not number, but', p['type'])
             return 0
     return evalue_expr(params[0]) % evalue_expr(params[1])
