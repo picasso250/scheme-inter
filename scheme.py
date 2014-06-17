@@ -133,7 +133,7 @@ def grammer(tokens):
     else:
         return [token] + grammer(tokens[1:])
 
-def sum_(params):
+def sum_(params, scope = {}):
     if len(params) == 0:
         print('+ with no params')
         return None
@@ -141,9 +141,9 @@ def sum_(params):
         if not isinstance(p, list) and p['type'] != 'token' and p['type'] != 'digit':
             print('Error: type is not number, but', p['type'])
             return 0
-    return sum([evalue_expr(e) for e in params])
+    return sum([evalue_expr(e, scope) for e in params])
 
-def sub_(params):
+def sub_(params, scope = {}):
     if len(params) == 0:
         print('- with no params')
         return 0
@@ -153,13 +153,13 @@ def sub_(params):
             print('Error: type is not number, but', p['type'])
             return 0
         if i == 0:
-            s = evalue_expr(p)
+            s = evalue_expr(p, scope)
         else:
-            s -= evalue_expr(p)
+            s -= evalue_expr(p, scope)
         i += 1
     return s
 
-def mul_(params):
+def mul_(params, scope = {}):
     if len(params) == 0:
         print('* with no params')
         return 0
@@ -169,10 +169,10 @@ def mul_(params):
             print('Error: type is not number, but', p['type'])
             return 0
         else:
-            s *= evalue_expr(p)
+            s *= evalue_expr(p, scope)
     return s
 
-def div_(params):
+def div_(params, scope = {}):
     if len(params) == 0:
         print('/ with no params')
         return 0
@@ -182,13 +182,13 @@ def div_(params):
             print('Error: type is not number, but', p['type'])
             return 0
         if i == 0:
-            s = evalue_expr(p)
+            s = evalue_expr(p, scope)
         else:
-            s /= evalue_expr(p)
+            s /= evalue_expr(p, scope)
         i += 1
     return s
 
-def mod_(params):
+def mod_(params, scope = {}):
     if len(params) == 0:
         print('% with no params')
         return 0
@@ -200,7 +200,7 @@ def mod_(params):
         if not isinstance(p, list) and p['type'] != 'token' and p['type'] != 'digit':
             print('Error: type is not number, but', p['type'])
             return 0
-    return evalue_expr(params[0]) % evalue_expr(params[1])
+    return evalue_expr(params[0], scope) % evalue_expr(params[1], scope)
 
 var_table = {}
 func_table = {
@@ -222,15 +222,19 @@ def define_var(name_node, value):
     return name
 
 def evalue_lambda(body, param_name_list, params):
+    print('params', params)
     scope_var_table = {}
     i = 0
     for pname in param_name_list:
-        scope_var_table[pname] = evalue_expr(params[i])
+        print('pname', pname)
+        scope_var_table[pname] = (params[i])
         i += 1
-    return evalue_expr(body, {'var_table': scope_var_table, 'func_table': {}})
+    print('scope_var_table', scope_var_table)
+    return evalue_expr(body, scope_var_table)
 
-def user_func(body, param_name_list):
-    return lambda params: evalue_lambda(body, param_name_list, params)
+def user_func(body, params):
+    param_name_list = [p['liter'] for p in params]
+    return lambda params, scope: evalue_lambda(body, param_name_list, params)
 
 def define_func(name_node, body):
     for node in name_node:
@@ -245,7 +249,7 @@ def define_func(name_node, body):
         print('Warn:', name, 'in func_table')
     func_table[name] = user_func(body, params)
 
-def define(params):
+def define(params, scope = {}):
     if len(params) == 0:
         print('Error: define with no params')
         return None
@@ -262,16 +266,20 @@ def define(params):
 
 func_table['define'] = define
 
-def evalue_node(node):
+def evalue_node(node, scope = {}):
+    print('evalue_node', node)
     node_type = node['type']
     node_liter = node['liter']
     if node_type == 'digit':
         return float(node_liter)
     if node_type == 'string':
         return node_liter
+    print('scope', scope)
     if node_type == 'token':
         if node_liter in var_table:
             return evalue_expr(var_table[node_liter])
+        elif node_liter in scope:
+            return evalue_expr(scope[node_liter])
         else:
             print('Error, token', node_liter, 'can not be evaluated')
             return None
@@ -296,9 +304,9 @@ def evalue_expr(expr, scope = {}):
         func = func_table[name]
         param_list = (expr[1:])
         print('param list', param_list)
-        return func(param_list)
+        return func(param_list, scope)
     else:
-        return evalue_node(expr)
+        return evalue_node(expr, scope)
 
 ''' evalue list of expr '''
 def evalue(ast):

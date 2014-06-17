@@ -61,3 +61,4 @@ statement = {
 #   (+ 3 5 7))''')
 
 evalue_code('(define (square x) (* x x))')
+evalue_code('(square 21)')
