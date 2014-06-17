@@ -332,4 +332,5 @@ def evalue_code(code):
     print ('== ast', ast)
     val = evalue(ast)
     print('=============',val)
+    return val
 
