@@ -230,7 +230,7 @@ def evalue_node(node):
         return node_liter
     if node_type == 'token':
         if node_liter in var_table:
-            return evalue_node(var_table[node_liter])
+            return evalue_expr(var_table[node_liter])
         else:
             print('Error, token', node_liter, 'can not be evaluated')
             return None
