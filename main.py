@@ -27,45 +27,17 @@ statement = {
 #val = evalue(ast)
 #print(val)
 
-evalue_code('(+ 137 349)')
-
-#evalue_code('(- 1000 334)')
-#evalue_code('(* 5 99)')
-#evalue_code('(/ 10 5)')
-#evalue_code('(+ 2.7 10)')
-
-#evalue_code('(+ 21 35 12 7)')
-#evalue_code('(* 25 4 12)')
-
-#evalue_code('(+ (* 3 5) (- 10 6))')
-
-#evalue_code('(+ (* 3 (+ (* 2 4) (+ 3 5))) (+ (- 10 7) 6))')
-# evalue_code('''(+ (* 3
-#       (+ (* 2 4)
-#          (+ 3 5)))
-#    (+ (- 10 7)
-#       6))''')
-
-#evalue_code('(define size 2)')
-#evalue_code('size')
-#evalue_code('(* 5 size)')
-
-#evalue_code('(define pi 3.14159)')
-#evalue_code('(define radius 10)')
-#evalue_code('(* pi (* radius radius))')
-#evalue_code('(define circumference (* 2 pi radius))')
-#evalue_code('circumference')
-
-#evalue_code('''
-#(* (+ 2 (* 4 6))
-#   (+ 3 5 7))''')
-
-#evalue_code('(define (square x) (* x x))')
+evalue_code('(define (square x) (* x x))')
 #evalue_code('(square 21)')
 #evalue_code('(square (+ 2 5))')
 #evalue_code('(square (square 3))')
 
-#evalue_code('''
-#(define (sum-of-squares x y)
-#  (+ (square x) (square y)))''')
-#evalue_code('(sum-of-squares 3 4)')
+evalue_code('''
+(define (sum-of-squares x y)
+  (+ (square x) (square y)))''')
+evalue_code('(sum-of-squares 3 4)')
+
+evalue_code('''
+(define (f a)
+  (sum-of-squares (+ a 1) (* a 2)))''')
+#evalue_code('''(f 5)''')

@@ -35,7 +35,7 @@ def test():
     for f in file_list:
         fh = open(f)
         ofh = open(f+'.output')
-        code = ''.join(fh.readlines())
+        code = fh.read()
         print(code)
         rs = evalue_code(code)
         print(rs)
