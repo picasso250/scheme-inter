@@ -61,4 +61,11 @@ statement = {
 #   (+ 3 5 7))''')
 
 evalue_code('(define (square x) (* x x))')
-evalue_code('(square 21)')
+#evalue_code('(square 21)')
+#evalue_code('(square (+ 2 5))')
+#evalue_code('(square (square 3))')
+
+evalue_code('''
+(define (sum-of-squares x y)
+  (+ (square x) (square y)))''')
+evalue_code('(sum-of-squares 3 4)')

@@ -221,20 +221,29 @@ def define_var(name_node, value):
     var_table[name] = value
     return name
 
-def evalue_lambda(body, param_name_list, params):
-    print('params', params)
+def evalue_lambda(body, param_name_list, params, scope):
+    print('evalue_lambda params', param_name_list, params)
+    print('scope', scope)
     scope_var_table = {}
     i = 0
     for pname in param_name_list:
         print('pname', pname)
-        scope_var_table[pname] = (params[i])
+        param = params[i]
+        if not isinstance(param, list) and param['type'] == 'token':
+            scope_pname = param['liter']
+            print('scope_pname', scope_pname)
+            if scope_pname in scope:
+                param = scope[scope_pname]
+        scope_var_table[pname] = param
         i += 1
     print('scope_var_table', scope_var_table)
-    return evalue_expr(body, scope_var_table)
+    rs = evalue_expr(body, scope_var_table)
+    print('evalue_lambda', body, param_name_list, params, scope, '==>', rs)
+    return rs
 
 def user_func(body, params):
     param_name_list = [p['liter'] for p in params]
-    return lambda params, scope: evalue_lambda(body, param_name_list, params)
+    return lambda params, scope: evalue_lambda(body, param_name_list, params, scope)
 
 def define_func(name_node, body):
     for node in name_node:
