@@ -71,11 +71,12 @@ def token(code):
                 print('next state', next_state)
                 liter, token, msg = callback(char, liter)
                 if token is not None:
-                    #print(token)
+                    print(token)
                     tokens += (token)
                 elif liter is None and token is None:
-                    print('line', ln, 'col', col, msg)
-                    return None
+                    if msg is not None:
+                        print('line', ln, 'col', col, msg)
+                        return None
                 state = next_state
                 
                 break;
@@ -83,18 +84,18 @@ def token(code):
         if char == "\n":
             ln += 1
             col = 0
-    print('tokens', tokens)
+    #print('tokens', tokens)
     return tokens
 
 '''return an expression'''
 def grammer_iter(tokens):
-    print('parse', tokens)
+    #print('parse', tokens)
     if len(tokens) == 0:
         return [], []
     l = []
     while len(tokens) > 0:
         token = tokens[0]
-        print('for token', token)
+        #print('for token', token)
         left = tokens[1:]
         if token['type'] == 'left parenthesis':
             print('enter with', left)
@@ -133,19 +134,27 @@ def sum_(params):
     if len(params) == 0:
         print('+ with no params')
         return None
-    
-    return sum(params)
+    for p in params:
+        if p['type'] != 'digit':
+            print('Error: type is not number, but', p['type'])
+            return 0
+    return sum([evalue_node(e) for e in params])
 
 def sub_(params):
     if len(params) == 0:
         print('- with no params')
         return 0
+    i = 0
     for p in params:
         if p['type'] != 'digit':
             print('Error: type is not number, but', p['type'])
             return 0
-    i = params.pop(0)['value']
-    return reduce(lambda a,b: a-b, params, i)
+        if i == 0:
+            s = evalue_node(p)
+        else:
+            s -= evalue_node(p)
+        i += 1
+    return s
 
 def mul_(params):
     if len(params) == 0:
@@ -157,19 +166,24 @@ def mul_(params):
             print('Error: type is not number, but', p['type'])
             return 0
         else:
-            s *= p['value']
+            s *= evalue_node(p)
     return s
 
 def div_(params):
     if len(params) == 0:
         print('/ with no params')
         return 0
+    i = 0
     for p in params:
         if p['type'] != 'digit':
             print('Error: type is not number, but', p['type'])
             return 0
-    i = params.pop(0)['value']
-    return reduce(lambda a,b: a/b, params, i)
+        if i == 0:
+            s = evalue_node(p)
+        else:
+            s /= evalue_node(p)
+        i += 1
+    return s
 
 def mod_(params):
     if len(params) == 0:
@@ -179,7 +193,7 @@ def mod_(params):
     if len(params) != 2:
         print('% need 2 params,', len_params, 'given')
         return 0
-    return params[0]['value'] % params[1]['value']
+    return evalue_node(params[0]) % evalue_node(params[1])
 
 def evalue_node(node):
     node_type = node['type']
@@ -215,8 +229,7 @@ def evalue_expr(expr):
             print('there is no lambda name', name)
             return None
         func = func_table[name]
-        print('param list', expr[1:])
-        param_list = evalue_list(expr[1:])
+        param_list = (expr[1:])
         print('param list', param_list)
         return func(param_list)
     else:
@@ -228,6 +241,14 @@ def evalue(ast):
     for expr in ast:
         val = evalue_expr(expr)
     return val
+
+def evalue_code(code):
+    tokens = token(code)
+    print('tokens', tokens)
+    ast = grammer(tokens)
+    print ('ast', ast)
+    val = evalue(ast)
+    print('=============',val)
 
 code = '(+ 137 349)';
 
@@ -247,10 +268,23 @@ statement = {
             }
         ]
     }
-ast = [statement]
-tokens = token(code)
-print('tokens', tokens)
-ast = grammer(tokens)
-print ('ast', ast)
-val = evalue(ast)
-print(val)
+#ast = [statement]
+#tokens = token(code)
+#print('tokens', tokens)
+#ast = grammer(tokens)
+#print ('ast', ast)
+#val = evalue(ast)
+#print(val)
+
+#evalue_code('(+ 137 349)')
+
+#evalue_code('(- 1000 334)')
+#evalue_code('(* 5 99)')
+#evalue_code('(/ 10 5)')
+#evalue_code('(+ 2.7 10)')
+
+#evalue_code('(+ 21 35 12 7)')
+#evalue_code('(* 25 4 12)')
+
+evalue_code('(+ (* 3 5) (- 10 6))')
+
