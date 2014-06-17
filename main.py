@@ -57,7 +57,7 @@ def token(code):
     ln = 1
     col = 0
     for char in code:
-        print('char =', char, 'state', state)
+        #print('char =', char, 'state', state)
         if state not in trans_table:
             print('Error:', state, 'not in trans table')
             return None
@@ -68,10 +68,10 @@ def token(code):
             next_state = entry[1]
             callback = entry[2]
             if char_cond(char):
-                print('next state', next_state)
+                #print('next state', next_state)
                 liter, token, msg = callback(char, liter)
                 if token is not None:
-                    print(token)
+                    #print(token)
                     tokens += (token)
                 elif liter is None and token is None:
                     if msg is not None:
@@ -135,10 +135,10 @@ def sum_(params):
         print('+ with no params')
         return None
     for p in params:
-        if p['type'] != 'digit':
+        if not isinstance(p, list) and p['type'] != 'digit':
             print('Error: type is not number, but', p['type'])
             return 0
-    return sum([evalue_node(e) for e in params])
+    return sum([evalue_expr(e) for e in params])
 
 def sub_(params):
     if len(params) == 0:
@@ -146,13 +146,13 @@ def sub_(params):
         return 0
     i = 0
     for p in params:
-        if p['type'] != 'digit':
+        if not isinstance(p, list) and p['type'] != 'digit':
             print('Error: type is not number, but', p['type'])
             return 0
         if i == 0:
-            s = evalue_node(p)
+            s = evalue_expr(p)
         else:
-            s -= evalue_node(p)
+            s -= evalue_expr(p)
         i += 1
     return s
 
@@ -162,11 +162,11 @@ def mul_(params):
         return 0
     s = 1
     for p in params:
-        if p['type'] != 'digit':
+        if not isinstance(p, list) and p['type'] != 'digit':
             print('Error: type is not number, but', p['type'])
             return 0
         else:
-            s *= evalue_node(p)
+            s *= evalue_expr(p)
     return s
 
 def div_(params):
@@ -175,13 +175,13 @@ def div_(params):
         return 0
     i = 0
     for p in params:
-        if p['type'] != 'digit':
+        if not isinstance(p, list) and p['type'] != 'digit':
             print('Error: type is not number, but', p['type'])
             return 0
         if i == 0:
-            s = evalue_node(p)
+            s = evalue_expr(p)
         else:
-            s /= evalue_node(p)
+            s /= evalue_expr(p)
         i += 1
     return s
 
@@ -193,7 +193,11 @@ def mod_(params):
     if len(params) != 2:
         print('% need 2 params,', len_params, 'given')
         return 0
-    return evalue_node(params[0]) % evalue_node(params[1])
+    for p in params:
+        if not isinstance(p, list) and p['type'] != 'digit':
+            print('Error: type is not number, but', p['type'])
+            return 0
+    return evalue_expr(params[0]) % evalue_expr(params[1])
 
 def evalue_node(node):
     node_type = node['type']
@@ -235,6 +239,7 @@ def evalue_expr(expr):
     else:
         return evalue_node(expr)
 
+''' evalue list of expr '''
 def evalue(ast):
     if len(ast) == 0:
         return None
@@ -244,9 +249,9 @@ def evalue(ast):
 
 def evalue_code(code):
     tokens = token(code)
-    print('tokens', tokens)
+    print('== tokens', tokens)
     ast = grammer(tokens)
-    print ('ast', ast)
+    print ('== ast', ast)
     val = evalue(ast)
     print('=============',val)
 
