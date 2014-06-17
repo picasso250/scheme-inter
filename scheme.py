@@ -257,6 +257,7 @@ def define_func(name_node, body):
     if name in func_table:
         print('Warn:', name, 'in func_table')
     func_table[name] = user_func(body, params)
+    return name
 
 def define(params, scope = {}):
     if len(params) == 0:

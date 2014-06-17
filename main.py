@@ -27,7 +27,7 @@ statement = {
 #val = evalue(ast)
 #print(val)
 
-#evalue_code('(+ 137 349)')
+evalue_code('(+ 137 349)')
 
 #evalue_code('(- 1000 334)')
 #evalue_code('(* 5 99)')
@@ -60,12 +60,12 @@ statement = {
 #(* (+ 2 (* 4 6))
 #   (+ 3 5 7))''')
 
-evalue_code('(define (square x) (* x x))')
+#evalue_code('(define (square x) (* x x))')
 #evalue_code('(square 21)')
 #evalue_code('(square (+ 2 5))')
 #evalue_code('(square (square 3))')
 
-evalue_code('''
-(define (sum-of-squares x y)
-  (+ (square x) (square y)))''')
-evalue_code('(sum-of-squares 3 4)')
+#evalue_code('''
+#(define (sum-of-squares x y)
+#  (+ (square x) (square y)))''')
+#evalue_code('(sum-of-squares 3 4)')
