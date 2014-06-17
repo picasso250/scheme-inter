@@ -203,6 +203,48 @@ def mod_(params):
     return evalue_expr(params[0]) % evalue_expr(params[1])
 
 var_table = {}
+func_table = {
+    '+': sum_,
+    '-': sub_,
+    '*': mul_,
+    '/': div_,
+    '%': mod_
+    }
+
+def define_var(name_node, value):
+    node_type = name_node['type']
+    if node_type != 'token':
+        print('Error: type', node_type, 'can not be defined')
+    name = name_node['liter']
+    if name in var_table:
+        print('Warn:', name, 'has been define')
+    var_table[name] = value
+    return name
+
+def evalue_lambda(body, param_name_list, params):
+    scope_var_table = {}
+    i = 0
+    for pname in param_name_list:
+        scope_var_table[pname] = evalue_expr(params[i])
+        i += 1
+    return evalue_expr(body, {'var_table': scope_var_table, 'func_table': {}})
+
+def user_func(body, param_name_list):
+    return lambda params: evalue_lambda(body, param_name_list, params)
+
+def define_func(name_node, body):
+    for node in name_node:
+        name_node_type = node['type']
+        if name_node_type != 'token':
+            print('Error:', name_node_type)
+            return None
+    params = name_node[1:]
+    name_node = name_node[0]
+    name = name_node['liter']
+    if name in func_table:
+        print('Warn:', name, 'in func_table')
+    func_table[name] = user_func(body, params)
+
 def define(params):
     if len(params) == 0:
         print('Error: define with no params')
@@ -211,15 +253,14 @@ def define(params):
         print('Error: define has two params')
         return None
     name_node = params[0]
-    node_type = name_node['type']
-    if node_type != 'token':
-        print('Error: type', node_type, 'can not be defined')
-    name = name_node['liter']
     value = params[1]
-    if name in var_table:
-        print('Warn:', name, 'has been define')
-    var_table[name] = value
-    return name
+    if isinstance(name_node, list):
+        return define_func(name_node, value)
+    else:
+        return define_var(name_node, value)
+
+
+func_table['define'] = define
 
 def evalue_node(node):
     node_type = node['type']
@@ -240,16 +281,7 @@ def evalue_node(node):
 def evalue_list(list_):
     return [evalue_node(e) for e in list_]
 
-func_table = {
-    '+': sum_,
-    '-': sub_,
-    '*': mul_,
-    '/': div_,
-    '%': mod_,
-    'define': define
-    }
-
-def evalue_expr(expr):
+def evalue_expr(expr, scope = {}):
     if isinstance(expr, list):
         lmd = expr[0]
         lmd_type = lmd['type']

@@ -50,9 +50,14 @@ statement = {
 #evalue_code('size')
 #evalue_code('(* 5 size)')
 
-evalue_code('(define pi 3.14159)')
-evalue_code('(define radius 10)')
-evalue_code('(* pi (* radius radius))')
-evalue_code('(define circumference (* 2 pi radius))')
-evalue_code('circumference')
+#evalue_code('(define pi 3.14159)')
+#evalue_code('(define radius 10)')
+#evalue_code('(* pi (* radius radius))')
+#evalue_code('(define circumference (* 2 pi radius))')
+#evalue_code('circumference')
 
+#evalue_code('''
+#(* (+ 2 (* 4 6))
+#   (+ 3 5 7))''')
+
+evalue_code('(define (square x) (* x x))')
