@@ -28,9 +28,9 @@ statement = {
 #print(val)
 
 evalue_code('(define (square x) (* x x))')
-#evalue_code('(square 21)')
-#evalue_code('(square (+ 2 5))')
-#evalue_code('(square (square 3))')
+evalue_code('(square 21)')
+evalue_code('(square (+ 2 5))')
+evalue_code('(square (square 3))')
 
 evalue_code('''
 (define (sum-of-squares x y)
@@ -40,4 +40,4 @@ evalue_code('(sum-of-squares 3 4)')
 evalue_code('''
 (define (f a)
   (sum-of-squares (+ a 1) (* a 2)))''')
-#evalue_code('''(f 5)''')
+evalue_code('''(f 5)''')

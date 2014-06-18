@@ -216,9 +216,8 @@ def mod_(params, scope = {}):
             return 0
     return evalue_expr(params[0], scope) % evalue_expr(params[1], scope)
 
-# maybe var_table and func_table should be one
-var_table = {}
-func_table = {
+# build in func
+var_table = {
     '+': sum_,
     '-': sub_,
     '*': mul_,
@@ -269,9 +268,9 @@ def define_func(name_node, body):
     params = name_node[1:]
     name_node = name_node[0]
     name = name_node['liter']
-    if name in func_table:
-        print('Warn:', name, 'in func_table')
-    func_table[name] = user_func(body, params)
+    if name in var_table:
+        print('Warn:', name, 'in var_table')
+    var_table[name] = user_func(body, params)
     return name
 
 def define(params, scope = {}):
@@ -289,7 +288,7 @@ def define(params, scope = {}):
         return define_var(name_node, value)
 
 
-func_table['define'] = define
+var_table['define'] = define
 
 def evalue_node(node, scope = {}):
     log.debug('evalue_node', node)
@@ -326,10 +325,10 @@ def evalue_expr(expr, scope = {}):
             return None
         name = lmd['liter']
         log.debug('lambda name', name)
-        if name not in func_table:
+        if name not in var_table:
             print('there is no lambda name', name)
             return None
-        func = func_table[name]
+        func = var_table[name]
         param_list = (expr[1:])
         log.debug('param list', param_list)
         return func(param_list, scope)
