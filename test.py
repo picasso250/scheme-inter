@@ -1,6 +1,6 @@
 
 from scheme import evalue_code
-import glob  
+import glob
   
 def equal(result, expected):
     if str(result) != expected:

@@ -216,6 +216,7 @@ def mod_(params, scope = {}):
             return 0
     return evalue_expr(params[0], scope) % evalue_expr(params[1], scope)
 
+# maybe var_table and func_table should be one
 var_table = {}
 func_table = {
     '+': sum_,
@@ -315,19 +316,22 @@ def evalue_list(list_):
 
 def evalue_expr(expr, scope = {}):
     if isinstance(expr, list):
+        if len(expr) == 0:
+            log.debug('list is empty')
+            return None
         lmd = expr[0]
         lmd_type = lmd['type']
         if lmd_type != 'token':
             print('Error, type of head element of list should be token,', lmd_type, 'given')
             return None
         name = lmd['liter']
-        print('lambda name', name)
+        log.debug('lambda name', name)
         if name not in func_table:
             print('there is no lambda name', name)
             return None
         func = func_table[name]
         param_list = (expr[1:])
-        print('param list', param_list)
+        log.debug('param list', param_list)
         return func(param_list, scope)
     else:
         return evalue_node(expr, scope)
@@ -348,4 +352,3 @@ def evalue_code(code):
     val = evalue(ast)
     log.debug('=============',val)
     return val
-
