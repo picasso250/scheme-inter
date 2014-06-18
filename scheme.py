@@ -101,27 +101,27 @@ def token(code):
             col = 0
     if liter is not None:
         tokens.append({'type': 'token', 'liter': liter})
-    #print('tokens', tokens)
+    log.debug('tokens', tokens)
     return tokens
 
 '''return an expression'''
 def grammer_iter(tokens):
-    #print('parse', tokens)
+    log.debug('parse', tokens)
     if len(tokens) == 0:
         return [], []
     l = []
     while len(tokens) > 0:
         token = tokens[0]
-        #print('for token', token)
+        log.debug('for token', token)
         left = tokens[1:]
         if token['type'] == 'left parenthesis':
-            print('enter with', left)
+            log.debug('enter with', left)
             il, left = grammer_iter(left)
             l.append(il)
         elif token['type'] == 'right parenthesis':
             return l, left
         else:
-            print('apeend', token)
+            log.debug('apeend', token)
             l.append(token)
         tokens = left
     print('Error, after ) left', left)
@@ -135,7 +135,7 @@ def grammer(tokens):
     token = tokens[0]
     token_type = token['type']
     if token_type == 'left parenthesis':
-        print('enter with', tokens[1:])
+        log.debug('enter with', tokens[1:])
         ast, left = grammer_iter(tokens[1:])
         if len(left) == 0:
             return [ast]
@@ -149,7 +149,7 @@ def grammer(tokens):
 
 def sum_(params, scope = {}):
     if len(params) == 0:
-        print('+ with no params')
+        print('Error: + with no params')
         return None
     for p in params:
         if not isinstance(p, list) and p['type'] != 'token' and p['type'] != 'digit':
@@ -237,23 +237,23 @@ def define_var(name_node, value):
     return name
 
 def evalue_lambda(body, param_name_list, params, scope):
-    print('evalue_lambda params', param_name_list, params)
-    print('scope', scope)
+    log.debug('evalue_lambda params', param_name_list, params)
+    log.debug('scope', scope)
     scope_var_table = {}
     i = 0
     for pname in param_name_list:
-        print('pname', pname)
+        log.debug('pname', pname)
         param = params[i]
         if not isinstance(param, list) and param['type'] == 'token':
             scope_pname = param['liter']
-            print('scope_pname', scope_pname)
+            log.debug('scope_pname', scope_pname)
             if scope_pname in scope:
                 param = scope[scope_pname]
         scope_var_table[pname] = param
         i += 1
-    print('scope_var_table', scope_var_table)
+    log.debug('scope_var_table', scope_var_table)
     rs = evalue_expr(body, scope_var_table)
-    print('evalue_lambda', body, param_name_list, params, scope, '==>', rs)
+    log.debug('evalue_lambda', body, param_name_list, params, scope, '==>', rs)
     return rs
 
 def user_func(body, params):
@@ -292,14 +292,14 @@ def define(params, scope = {}):
 func_table['define'] = define
 
 def evalue_node(node, scope = {}):
-    print('evalue_node', node)
+    log.debug('evalue_node', node)
     node_type = node['type']
     node_liter = node['liter']
     if node_type == 'digit':
         return float(node_liter)
     if node_type == 'string':
         return node_liter
-    print('scope', scope)
+    log.debug('scope', scope)
     if node_type == 'token':
         if node_liter in var_table:
             return evalue_expr(var_table[node_liter])
@@ -346,9 +346,9 @@ def evalue(ast):
 
 def evalue_code(code):
     tokens = token(code)
-    print('== tokens', tokens)
+    log.debug('== tokens', tokens)
     ast = grammer(tokens)
-    print ('== ast', ast)
+    log.debug ('== ast', ast)
     val = evalue(ast)
     log.debug('=============',val)
     return val

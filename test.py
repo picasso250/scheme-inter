@@ -1,11 +1,12 @@
 
-from scheme import evalue_code
+from scheme import evalue_code, log
 import glob
+
+log.debug_ = False
   
 def equal(result, expected):
     if str(result) != expected:
         float_output = expected+'.0'
-        print(str(result), float_output)
         if str(result) == float_output:
             print('Warn, it shoud be int, not float', expected)
             return True
@@ -21,11 +22,10 @@ def test():
         fh = open(f)
         ofh = open(f+'.output')
         for code in fh.readlines():
-            print(code)
+            print('code', code)
             rs = evalue_code(code)
-            print(rs)
+            print('result', rs)
             output = ofh.readline().strip()
-            print(str(rs), output)
             if not equal(rs, output):
                 print('Error, result', rs, 'expected', output)
                 return False
@@ -36,11 +36,10 @@ def test():
         fh = open(f)
         ofh = open(f+'.output')
         code = fh.read()
-        print(code)
+        print('code', code)
         rs = evalue_code(code)
-        print(rs)
+        print('result', rs)
         output = ofh.readline().strip()
-        print(str(rs), output)
         if not equal(rs, output):
             print('Error, result', rs, 'expected', output)
             return False
