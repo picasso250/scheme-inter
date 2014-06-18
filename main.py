@@ -39,5 +39,5 @@ evalue_code('''
 
 evalue_code('''
 (define (f a)
-  (sum-of-squares (+ a 1) (* a 2)))''')
-evalue_code('''(f 5)''')
+  (sum-of-squares (+ a 1) (* a 2)))
+(f 5)''')

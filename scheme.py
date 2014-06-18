@@ -140,7 +140,7 @@ def grammer(tokens):
         if len(left) == 0:
             return [ast]
         else:
-            return grammer(left)
+            return [ast] + grammer(left)
     elif token_type == 'right parenthesis':
         print('Eorror, )')
         return None
