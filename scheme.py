@@ -1,3 +1,17 @@
+
+class Log(object):
+    """docstring for Log"""
+    def __init__(self):
+        super(Log, self).__init__()
+        self.debug_ = True
+    
+    def debug(self, *arg):
+        if self.debug_:
+            print(*arg)
+
+log = Log()
+log.debug_ = True
+
 # 3 node type
 # function
 # digit
@@ -332,6 +346,6 @@ def evalue_code(code):
     ast = grammer(tokens)
     print ('== ast', ast)
     val = evalue(ast)
-    print('=============',val)
+    log.debug('=============',val)
     return val
 
