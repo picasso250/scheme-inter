@@ -235,10 +235,11 @@ def define_var(name_node, value):
     var_table[name] = value
     return name
 
+# evaluate user defined lambda
 def evalue_lambda(body, param_name_list, params, scope):
     log.debug('evalue_lambda params', param_name_list, params)
     log.debug('scope', scope)
-    scope_var_table = {}
+    scope_var_table = scope
     i = 0
     for pname in param_name_list:
         log.debug('pname', pname)
