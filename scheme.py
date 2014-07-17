@@ -5,14 +5,16 @@ log = logger.Log()
 log.debug_ = True
 
 def sum_(params, scope = {}):
+    print('sum of', params)
     if len(params) == 0:
-        print('Error: + with no params')
+        raise Exception('Error: + with no params')
         return None
     for p in params:
-        if not isinstance(p, list) and p['type'] != 'token' and p['type'] != 'digit':
-            print('Error: type is not number, but', p['type'])
+        if not isinstance(p, int) and not isinstance(p, float):
+            print(p)
+            raise Exception('Error: type is not number')
             return 0
-    return sum([evalue_expr(e, scope) for e in params])
+    return sum(params)
 
 def sub_(params, scope = {}):
     if len(params) == 0:
@@ -181,19 +183,17 @@ def evalue_expr(expr, scope = {}):
             log.debug('list is empty')
             return None
         lmd = expr[0]
-        lmd_type = lmd['type']
-        if lmd_type != 'token':
-            print('Error, type of head element of list should be token,', lmd_type, 'given')
+        if not isinstance(lmd, str):
+            print('Error, type of head element of list should be token')
             return None
-        name = lmd['liter']
-        log.debug('lambda name', name)
-        if name not in g_var_table:
-            print('there is no lambda name', name)
+        log.debug('lambda name', lmd)
+        if lmd not in g_var_table:
+            print('there is no lambda name', lmd)
             return None
-        func = g_var_table[name]
-        param_list = (expr[1:])
+        func = g_var_table[lmd]
+        param_list = expr[1:]
         log.debug('param list', param_list)
-        return func(param_list, scope)
+        return func([evalue_expr(p, scope)[0] for p in param_list]), scope
     else:
         return evalue_node(expr, scope), scope
 

@@ -1,10 +1,10 @@
 
 from scheme import evalue_code
 
-evalue_code('3')
+#evalue_code('3')
 
 code = '(+ 137 349)';
-if False:
+if True:
     evalue_code(code)
 
 
