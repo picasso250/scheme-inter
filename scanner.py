@@ -56,14 +56,13 @@ def test_entry(char, state):
             return entry
     return None
 
-# 
 '''
 consume a char, and build, but it can not build tree 
 pre-condition:
     1. char + code = old_code
 '''
-def consume(char, state, ast, code, liter):
-    # print('consume '+char+' -|- '+code)
+def consume(char, state, ast, code, liter, level):
+    print('consume '+char+' -|- '+code+'----'+str(level))
     entry = test_entry(char, state)
     if entry is None:
         raise Exception('current state '+state+', char: '+char)
@@ -82,16 +81,18 @@ def consume(char, state, ast, code, liter):
         ast.append(token)
     if cmd == 'push':
         # print('push')
-        _, sub_ast, code, _ = consume(code[0], 'normal', [], code[1:], '')
+        _, sub_ast, code, _ = consume(code[0], 'normal', [], code[1:], '', level+1)
         if len(sub_ast) > 0:
             ast.append(sub_ast)
     elif cmd == 'pop':
-        if len(code) > 0:
-            raise Exception('code left '+code)
+        if len(code) > 0 and level == 0:
+            raise Exception('code left "'+code+'"')
         return next_state, ast, code, liter
     elif cmd is not None:
         raise Exception('unknown command '+cmd)
-    return next_state, ast, code, liter
+    if len(code) == 0:
+        return 'end', ast, code, liter
+    return consume(code[0], next_state, ast, code[1:], liter, level)
 
 def scan_code(code):
     i = 0
@@ -99,7 +100,5 @@ def scan_code(code):
     state = 'normal'
     liter = ''
     code = code.strip()
-    while len(code) > 0:
-        # print('code ' + code)
-        state, ast, code, liter = consume(code[i], state, ast, code[1:], liter)
+    state, ast, code, liter = consume(code[i], state, ast, code[1:], liter, 0)
     return ast
