@@ -57,6 +57,13 @@ def test_entry(char, state):
             return entry
     return None
 
+def token2num(token):
+    if token[0].isdigit():
+        if '.' in token:
+            token = float(token)
+        else:
+            token = int(token)
+    return token
 '''
 consume a char, and build, but it can not build tree 
 pre-condition:
@@ -68,10 +75,12 @@ def consume(char, state, ast, code, liter, level, pos):
     if entry is None:
         raise Exception('current state '+state+', char: '+char)
     next_state = entry[1]
+    print(next_state)
     if next_state == 'error':
         raise Exception(str(pos)+': error state '+code)
     callback = entry[2]
     rs = callback(char, liter)
+    print(rs)
     liter, token, error, cmd = None, None, None, None
     if len(rs) == 4:
         liter, token, error, cmd = rs
@@ -80,13 +89,9 @@ def consume(char, state, ast, code, liter, level, pos):
     if error is not None:
         raise Exception(error)
     if token is not None:
-        # print(token)
-        if token[0].isdigit():
-            if '.' in token:
-                token = float(token)
-            else:
-                token = int(token)
-        ast.append(token)
+        print(token)
+        
+        ast.append(token2num(token))
     if cmd == 'push':
         # print('push')
         _, sub_ast, code, _ = consume(code[0], 'normal', [], code[1:], '', level+1, pos+1)
@@ -100,6 +105,11 @@ def consume(char, state, ast, code, liter, level, pos):
     elif cmd is not None:
         raise Exception('unknown command '+cmd)
     if len(code) == 0:
+        if len(liter) > 0:
+            if next_state == 'token':
+                ast.append(token2num(liter))
+            else:
+                raise Exception('error '+next_state)
         return 'end', ast, code, liter
     return consume(code[0], next_state, ast, code[1:], liter, level, pos+1)
 
