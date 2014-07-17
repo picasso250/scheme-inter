@@ -1,151 +1,8 @@
+import logger
+import scanner
 
-class Log(object):
-    """docstring for Log"""
-    def __init__(self):
-        super(Log, self).__init__()
-        self.debug_ = True
-    
-    def debug(self, *arg):
-        if self.debug_:
-            print(*arg)
-
-log = Log()
+log = logger.Log()
 log.debug_ = True
-
-# 3 node type
-# function
-# digit
-# string
-
-# key: cur_state
-# value: cur_char, next_state, callback(char, literal, token) => (literal, token, ErrorMessage)
-
-when_normal = [
-    [lambda c: c == '(', 'normal', lambda c, i: (None, [{'type': 'left parenthesis'}], None)],
-    [lambda c: c == ')', 'normal', lambda c, i: (None, [{'type': 'right parenthesis'}], None)],
-    [lambda c: c.isdigit(), 'digit', lambda c, i: (c, None, None)],
-    [lambda c: c.isspace(), 'normal', lambda c, i: (None, None, None)],
-    [lambda c: c == '"', 'string', lambda c, i: ('', None, None)],
-    [lambda c: True, 'token', lambda c, i: (c, None, None)],
-    ]
-when_digit = [
-    [lambda c: c.isdigit() or c == '.', 'digit', lambda c, i: (i+c, None, None)],
-    [lambda c: c.isspace(), 'normal', lambda c, i: (None, [{'type': 'digit', 'liter': i}], None)],
-    [lambda c: c == ')', 'normal', lambda c, i: (None, [{'type': 'digit', 'liter': i}, {'type': 'right parenthesis'}], None)],
-    [lambda c: True, 'error', lambda c, i: (None, None, 'digit '+literal+', should not follow by '+char)],
-    ]
-when_token = [
-    [lambda c: c.isalpha() or c.isdigit() or c == '-' or c == '_', 'token', lambda c, i: (i+c, None, None)],
-    [lambda c: c.isspace(), 'normal', lambda c, i: (None, [{'type': 'token', 'liter': i}], None)],
-    [lambda c: c == ')', 'normal', lambda c, i: (None, [{'type': 'token', 'liter': i}, {'type': 'right parenthesis'}], None)],
-    [lambda c: True, 'error', lambda c, i: (None, None, 'digit '+literal+', should not follow by '+char)],
-    ]
-when_string = [
-    [lambda c: c == '"', 'normal', lambda c, i: (None, [{'type': 'string', 'liter': i}], None)],
-    [lambda c: c == '\\', 'escape', lambda c, i: (None, None, None)],
-    [lambda c: True, 'error', lambda c, i: (i+c, None, None, None)],
-    ]
-escape_table = {
-    'n': "\n",
-    'r': "\r",
-    't': "\t",
-    'v': "\v",
-    }
-when_escape = [
-    [lambda c: c == 'n', 'string', lambda c, i: (escape_table[c], None, None)],
-    [lambda c: True, 'string', lambda c, i: (i+'\\'+c, None, None)],
-    ]
-trans_table = {
-    'normal': when_normal,
-    'digit': when_digit,
-    'token': when_token,
-    'string': when_string,
-    'escape': when_escape
-    }
-
-'''scan'''
-def token(code):
-    print('code', code)
-    tokens = []
-    state = 'normal'
-    liter = ''
-    ln = 1
-    col = 0
-    for char in code:
-        # print('char =', char, 'state', state)
-        if state not in trans_table:
-            print('Error:', state, 'not in trans table')
-            return None
-        entries = trans_table[state]
-        for entry in entries:
-            # print('.')
-            char_cond = entry[0]
-            next_state = entry[1]
-            callback = entry[2]
-            if char_cond(char):
-                # print('next state', next_state)
-                liter, token, msg = callback(char, liter)
-                if token is not None:
-                    # print(token)
-                    tokens += (token)
-                elif liter is None and token is None:
-                    if msg is not None:
-                        print('line', ln, 'col', col, msg)
-                        return None
-                state = next_state
-                
-                break;
-        col += 1
-        if char == "\n":
-            ln += 1
-            col = 0
-    if liter is not None:
-        tokens.append({'type': 'token', 'liter': liter})
-    log.debug('tokens', tokens)
-    return tokens
-
-'''return an expression'''
-def grammer_iter(tokens):
-    log.debug('parse', tokens)
-    if len(tokens) == 0:
-        return [], []
-    l = []
-    while len(tokens) > 0:
-        token = tokens[0]
-        log.debug('for token', token)
-        left = tokens[1:]
-        if token['type'] == 'left parenthesis':
-            log.debug('enter with', left)
-            il, left = grammer_iter(left)
-            l.append(il)
-        elif token['type'] == 'right parenthesis':
-            return l, left
-        else:
-            log.debug('apeend', token)
-            l.append(token)
-        tokens = left
-    print('Error, after ) left', left)
-    return None, None
-
-'''return a list of expressions'''
-def grammer(tokens):
-    if len(tokens) == 0:
-        print('no tokens')
-        return []
-    token = tokens[0]
-    token_type = token['type']
-    if token_type == 'left parenthesis':
-        log.debug('enter with', tokens[1:])
-        ast, left = grammer_iter(tokens[1:])
-        if len(left) == 0:
-            return [ast]
-        else:
-            return [ast] + grammer(left)
-    elif token_type == 'right parenthesis':
-        print('Eorror, )')
-        return None
-    else:
-        return [token] + grammer(tokens[1:])
 
 def sum_(params, scope = {}):
     if len(params) == 0:
@@ -217,7 +74,7 @@ def mod_(params, scope = {}):
     return evalue_expr(params[0], scope) % evalue_expr(params[1], scope)
 
 # build in func
-var_table = {
+g_var_table = {
     '+': sum_,
     '-': sub_,
     '*': mul_,
@@ -230,9 +87,9 @@ def define_var(name_node, value):
     if node_type != 'token':
         print('Error: type', node_type, 'can not be defined')
     name = name_node['liter']
-    if name in var_table:
+    if name in g_var_table:
         print('Warn:', name, 'has been define')
-    var_table[name] = value
+    g_var_table[name] = value
     return name
 
 # evaluate user defined lambda
@@ -269,9 +126,9 @@ def define_func(name_node, body):
     params = name_node[1:]
     name_node = name_node[0]
     name = name_node['liter']
-    if name in var_table:
-        print('Warn:', name, 'in var_table')
-    var_table[name] = user_func(body, params)
+    if name in g_var_table:
+        print('Warn:', name, 'in g_var_table')
+    g_var_table[name] = user_func(body, params)
     return name
 
 def define(params, scope = {}):
@@ -289,24 +146,28 @@ def define(params, scope = {}):
         return define_var(name_node, value)
 
 
-var_table['define'] = define
+g_var_table['define'] = define
 
 def evalue_node(node, scope = {}):
     log.debug('evalue_node', node)
-    node_type = node['type']
-    node_liter = node['liter']
-    if node_type == 'digit':
-        return float(node_liter)
-    if node_type == 'string':
-        return node_liter
+    if isinstance(node, int) or isinstance(node, float):
+        return node
+    if isinstance(node, tuple):
+        if len(node) != 2:
+            print(node)
+            raise Exception('unknown tuple')
+        t, value = node
+        if t != 'string':
+            raise Exception('unknown type '+t+', should be string')
+        return value
     log.debug('scope', scope)
-    if node_type == 'token':
-        if node_liter in var_table:
-            return evalue_expr(var_table[node_liter])
-        elif node_liter in scope:
-            return evalue_expr(scope[node_liter])
+    if isinstance(node, str):
+        if node in g_var_table:
+            return (g_var_table[node])
+        elif node in scope:
+            return (scope[node])
         else:
-            print('Error, token', node_liter, 'can not be evaluated')
+            print('Error, token', node, 'can not be evaluated')
             return None
     print('Error,', node_type, 'can not be evaluated')
     return None
@@ -326,10 +187,10 @@ def evalue_expr(expr, scope = {}):
             return None
         name = lmd['liter']
         log.debug('lambda name', name)
-        if name not in var_table:
+        if name not in g_var_table:
             print('there is no lambda name', name)
             return None
-        func = var_table[name]
+        func = g_var_table[name]
         param_list = (expr[1:])
         log.debug('param list', param_list)
         return func(param_list, scope)
@@ -337,18 +198,22 @@ def evalue_expr(expr, scope = {}):
         return evalue_node(expr, scope)
 
 ''' evalue list of expr '''
-def evalue(ast):
+def evalue_ast(ast):
     if len(ast) == 0:
         return None
+    env = {}
     for expr in ast:
-        val = evalue_expr(expr)
+        val, env = evalue_expr(expr, env)
     return val
 
+'''
+ast  ::= expr*
+expr ::= node|list
+node ::= token|string|digit
+'''
 def evalue_code(code):
-    tokens = token(code)
-    log.debug('== tokens', tokens)
-    ast = grammer(tokens)
+    ast = scanner.scan_code(code)
     log.debug ('== ast', ast)
-    val = evalue(ast)
+    val = evalue_ast(ast)
     log.debug('=============',val)
     return val
