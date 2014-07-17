@@ -174,9 +174,6 @@ def evalue_node(node, scope = {}):
     print('Error,', node_type, 'can not be evaluated')
     return None
 
-def evalue_list(list_):
-    return [evalue_node(e) for e in list_]
-
 def evalue_expr(expr, scope = {}):
     if isinstance(expr, list):
         if len(expr) == 0:
