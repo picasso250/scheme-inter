@@ -56,8 +56,14 @@ def test_entry(char, state):
             return entry
     return None
 
-# consume a char, and build, but it can not build tree
+# 
+'''
+consume a char, and build, but it can not build tree 
+pre-condition:
+    1. char + code = old_code
+'''
 def consume(char, state, ast, code, liter):
+    # print('consume '+char+' -|- '+code)
     entry = test_entry(char, state)
     if entry is None:
         raise Exception('current state '+state+', char: '+char)
@@ -75,7 +81,8 @@ def consume(char, state, ast, code, liter):
         print(token)
         ast.append(token)
     if cmd == 'push':
-        _, sub_ast, code, _ = consume(code[0], 'normal', [], code, '')
+        # print('push')
+        _, sub_ast, code, _ = consume(code[0], 'normal', [], code[1:], '')
         if len(sub_ast) > 0:
             ast.append(sub_ast)
     elif cmd == 'pop':
@@ -93,5 +100,6 @@ def scan_code(code):
     liter = ''
     code = code.strip()
     while len(code) > 0:
+        # print('code ' + code)
         state, ast, code, liter = consume(code[i], state, ast, code[1:], liter)
     return ast
