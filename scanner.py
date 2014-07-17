@@ -7,6 +7,7 @@ log.debug_ = True
 # value: cur_char, next_state, callback
 # callback(char, literal) => (literal, token_list, ErrorMessage, cmd)
 # cmd=push|pop
+# token is pure string, and string is ("string", "xxxx")
 
 when_normal = [
     [lambda c: c == '(', 'normal', lambda c, i: (None, None, None, 'push')],
@@ -17,12 +18,12 @@ when_normal = [
     ]
 when_token = [
     [lambda c: c.isalpha() or c.isdigit() or c in '-_?<>', 'token', lambda c, i: (i+c, None, None)],
-    [lambda c: c.isspace(), 'normal', lambda c, i: (None, {'type': 'token', 'liter': i}, None)],
-    [lambda c: c == ')', 'normal', lambda c, i: (None, {'type': 'token', 'liter': i}, None, 'pop')],
+    [lambda c: c.isspace(), 'normal', lambda c, i: (None, i, None)],
+    [lambda c: c == ')', 'normal', lambda c, i: (None, i, None, 'pop')],
     [lambda c: True, 'error', lambda c, i: (None, None, 'token '+i+', should not follow by '+c)],
     ]
 when_string = [
-    [lambda c: c == '"', 'normal', lambda c, i: (None, {'type': 'string', 'liter': i}, None)],
+    [lambda c: c == '"', 'normal', lambda c, i: (None, ('string', i), None)],
     [lambda c: c == '\\', 'escape', lambda c, i: (None, None, None)],
     [lambda c: True, 'string', lambda c, i: (i+c, None, None, None)],
     ]
