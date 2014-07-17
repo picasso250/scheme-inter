@@ -85,7 +85,8 @@ def consume(char, state, ast, code, liter, level):
         if len(sub_ast) > 0:
             ast.append(sub_ast)
     elif cmd == 'pop':
-        if len(code) > 0 and level == 0:
+        print('pop '+str(level)+' '+code)
+        if len(code) > 0 and level <= 1:
             raise Exception('code left "'+code+'"')
         return next_state, ast, code, liter
     elif cmd is not None:
