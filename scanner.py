@@ -4,23 +4,25 @@ log = logger.Log()
 log.debug_ = True
 
 # key: cur_state
-# value: cur_char, next_state, callback(char, literal) => (literal, token, ErrorMessage)
+# value: cur_char, next_state, callback
+# callback(char, literal) => (literal, token_list, ErrorMessage, cmd)
+# cmd=push|pop
 
 when_normal = [
-    [lambda c: c == '(', 'normal', lambda c, i: (None, [{'type': 'left parenthesis'}], None)],
-    [lambda c: c == ')', 'normal', lambda c, i: (None, [{'type': 'right parenthesis'}], None)],
+    [lambda c: c == '(', 'normal', lambda c, i: (None, None, None, 'push')],
+    [lambda c: c == ')', 'normal', lambda c, i: (None, None, None, 'pop')],
     [lambda c: c.isspace(), 'normal', lambda c, i: (None, None, None)],
     [lambda c: c == '"', 'string', lambda c, i: ('', None, None)],
     [lambda c: True, 'token', lambda c, i: (c, None, None)],
     ]
 when_token = [
     [lambda c: c.isalpha() or c.isdigit() or c == '-' or c == '_', 'token', lambda c, i: (i+c, None, None)],
-    [lambda c: c.isspace(), 'normal', lambda c, i: (None, [{'type': 'token', 'liter': i}], None)],
-    [lambda c: c == ')', 'normal', lambda c, i: (None, [{'type': 'token', 'liter': i}, {'type': 'right parenthesis'}], None)],
+    [lambda c: c.isspace(), 'normal', lambda c, i: (None, {'type': 'token', 'liter': i}, None)],
+    [lambda c: c == ')', 'normal', lambda c, i: (None, {'type': 'token', 'liter': i}, None, 'pop')],
     [lambda c: True, 'error', lambda c, i: (None, None, 'digit '+literal+', should not follow by '+char)],
     ]
 when_string = [
-    [lambda c: c == '"', 'normal', lambda c, i: (None, [{'type': 'string', 'liter': i}], None)],
+    [lambda c: c == '"', 'normal', lambda c, i: (None, {'type': 'string', 'liter': i}, None)],
     [lambda c: c == '\\', 'escape', lambda c, i: (None, None, None)],
     [lambda c: True, 'error', lambda c, i: (i+c, None, None, None)],
     ]
@@ -42,43 +44,54 @@ trans_table = {
     'escape': when_escape
     }
 
-'''scan'''
+def test_entry(char, state):
+    if state not in trans_table:
+        raise Exception('Error: current state '+state+' not in trans_table')
+    when = trans_table[state]
+    for entry in when:
+        # print(entry)
+        cond = entry[0]
+        # print(cond)
+        if cond(char):
+            return entry
+    return None
+
+# consume a char, and build, but it can not build tree
+def consume(char, state, ast, code, liter):
+    entry = test_entry(char, state)
+    if entry is None:
+        raise Exception('current state '+state+', char: '+char)
+    next_state = entry[1]
+    callback = entry[2]
+    rs = callback(char, liter)
+    liter, token, error, cmd = None, None, None, None
+    if len(rs) == 4:
+        liter, token, error, cmd = rs
+    else:
+        liter, token, error = rs
+    if error is not None:
+        raise Exception(error)
+    if token is not None:
+        print(token)
+        ast.append(token)
+    if cmd == 'push':
+        _, sub_ast, code, _ = consume(code[0], 'normal', [], code, '')
+        if len(sub_ast) > 0:
+            ast.append(sub_ast)
+    elif cmd == 'pop':
+        if len(code) > 0:
+            raise Exception('code left '+code)
+        return next_state, ast, code, liter
+    elif cmd is not None:
+        raise Exception('unknown command '+cmd)
+    return next_state, ast, code, liter
+
 def scan_code(code):
-    print('code', code)
-    tokens = []
+    i = 0
+    ast = []
     state = 'normal'
     liter = ''
-    ln = 1
-    col = 0
-    for char in code:
-        # print('char =', char, 'state', state)
-        if state not in trans_table:
-            print('Error:', state, 'not in trans table')
-            return None
-        entries = trans_table[state]
-        for entry in entries:
-            # print('.')
-            char_cond = entry[0]
-            next_state = entry[1]
-            callback = entry[2]
-            if char_cond(char):
-                # print('next state', next_state)
-                liter, token, msg = callback(char, liter)
-                if token is not None:
-                    # print(token)
-                    tokens += (token)
-                elif liter is None and token is None:
-                    if msg is not None:
-                        print('line', ln, 'col', col, msg)
-                        return None
-                state = next_state
-                
-                break;
-        col += 1
-        if char == "\n":
-            ln += 1
-            col = 0
-    if liter is not None:
-        tokens.append({'type': 'token', 'liter': liter})
-    log.debug('tokens', tokens)
-    return tokens
+    code = code.strip()
+    while len(code) > 0:
+        state, ast, code, liter = consume(code[i], state, ast, code[1:], liter)
+    return ast

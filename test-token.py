@@ -2,5 +2,6 @@
 import scanner
 
 code = '(+ 137 349)';
-
-scanner.scan_code(code)
+print(code)
+ast = scanner.scan_code(code)
+print(ast)
