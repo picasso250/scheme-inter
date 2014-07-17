@@ -195,7 +195,7 @@ def evalue_expr(expr, scope = {}):
         log.debug('param list', param_list)
         return func(param_list, scope)
     else:
-        return evalue_node(expr, scope)
+        return evalue_node(expr, scope), scope
 
 ''' evalue list of expr '''
 def evalue_ast(ast):
