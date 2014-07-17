@@ -7,7 +7,7 @@ log.debug_ = True
 # value: cur_char, next_state, callback
 # callback(char, literal) => (literal, token_list, ErrorMessage, cmd)
 # cmd=push|pop
-# token is pure string, and string is ("string", "xxxx")
+# token is pure string, and string is ("string", "xxxx"), and digit is digit
 
 when_normal = [
     [lambda c: c == '(', 'normal', lambda c, i: (None, None, None, 'push')],
@@ -81,6 +81,11 @@ def consume(char, state, ast, code, liter, level, pos):
         raise Exception(error)
     if token is not None:
         # print(token)
+        if token[0].isdigit():
+            if '.' in token:
+                token = float(token)
+            else:
+                token = int(token)
         ast.append(token)
     if cmd == 'push':
         # print('push')

@@ -4,7 +4,8 @@ import scanner
 code = '(+ 137 349)'
 code = '(+ 137 349 (- 2 1))'
 #code = '(+ 137 349 (- 2 1)))' # error
-code ='''
+if False:
+    code ='''
 (define (eval exp env)
   (cond ((self-evaluating? exp) exp)
         ((variable? exp) (lookup-variable-value exp env))
