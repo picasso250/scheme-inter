@@ -22,13 +22,14 @@ def sub_(params, scope = {}):
         return 0
     i = 0
     for p in params:
-        if not isinstance(p, list) and p['type'] != 'token' and p['type'] != 'digit':
-            print('Error: type is not number, but', p['type'])
+        if not isinstance(p, int) and not isinstance(p, float):
+            print(p)
+            raise Exception('Error: type is not number')
             return 0
         if i == 0:
-            s = evalue_expr(p, scope)
+            s = p
         else:
-            s -= evalue_expr(p, scope)
+            s -= p
         i += 1
     return s
 
@@ -38,11 +39,12 @@ def mul_(params, scope = {}):
         return 0
     s = 1
     for p in params:
-        if not isinstance(p, list) and p['type'] != 'token' and p['type'] != 'digit':
-            print('Error: type is not number, but', p['type'])
+        if not isinstance(p, int) and not isinstance(p, float):
+            print(p)
+            raise Exception('Error: type is not number')
             return 0
         else:
-            s *= evalue_expr(p, scope)
+            s *= p
     return s
 
 def div_(params, scope = {}):
@@ -51,13 +53,14 @@ def div_(params, scope = {}):
         return 0
     i = 0
     for p in params:
-        if not isinstance(p, list) and p['type'] != 'token' and p['type'] != 'digit':
-            print('Error: type is not number, but', p['type'])
+        if not isinstance(p, int) and not isinstance(p, float):
+            print(p)
+            raise Exception('Error: type is not number')
             return 0
         if i == 0:
-            s = evalue_expr(p, scope)
+            s = p
         else:
-            s /= evalue_expr(p, scope)
+            s /= p
         i += 1
     return s
 
