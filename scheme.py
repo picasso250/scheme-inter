@@ -87,15 +87,14 @@ g_var_table = {
     '%': mod_
     }
 
-def define_var(name_node, value):
-    node_type = name_node['type']
-    if node_type != 'token':
-        print('Error: type', node_type, 'can not be defined')
-    name = name_node['liter']
+def define_var(name, value):
+    if not isinstance(name, str):
+        print(name)
+        raise Exception('Error: can not be defined')
     if name in g_var_table:
         print('Warn:', name, 'has been define')
     g_var_table[name] = value
-    return name
+    return name, {}
 
 # evaluate user defined lambda
 def evalue_lambda(body, param_name_list, params, scope):
@@ -138,10 +137,10 @@ def define_func(name_node, body):
 
 def define(params, scope = {}):
     if len(params) == 0:
-        print('Error: define with no params')
+        raise Exception('Error: define with no params')
         return None
     if len(params) != 2:
-        print('Error: define has two params')
+        raise Exception('Error: define has two params')
         return None
     name_node = params[0]
     value = params[1]
@@ -150,12 +149,12 @@ def define(params, scope = {}):
     else:
         return define_var(name_node, value)
 
-
-g_var_table['define'] = define
+g_verb_table = {}
+g_verb_table['define'] = define
 
 def evalue_node(node, scope = {}):
     log.debug('evalue_node', node)
-    if isinstance(node, int) or isinstance(node, float):
+    if isinstance(node, int) or isinstance(node, float) or isinstance(node, bool):
         return node
     if isinstance(node, tuple):
         if len(node) != 2:
@@ -172,7 +171,7 @@ def evalue_node(node, scope = {}):
         elif node in scope:
             return (scope[node])
         else:
-            print('Error, token', node, 'can not be evaluated')
+            raise Exception('Error, token', node, 'can not be evaluated')
             return None
     print('Error,', node_type, 'can not be evaluated')
     return None
@@ -187,11 +186,17 @@ def evalue_expr(expr, scope = {}):
             print('Error, type of head element of list should be token')
             return None
         log.debug('lambda name', lmd)
+        param_list = expr[1:]
         if lmd not in g_var_table:
-            print('there is no lambda name', lmd)
+            # print('there is no lambda name', lmd)
+            if lmd not in g_verb_table:
+                raise Exception('no lambda '+lmd)
+            else:
+                func = g_verb_table[lmd]
+                value, more_scope = func(param_list)
+                return value, scope.update(more_scope)
             return None
         func = g_var_table[lmd]
-        param_list = expr[1:]
         log.debug('param list', param_list)
         return func([evalue_expr(p, scope)[0] for p in param_list]), scope
     else:

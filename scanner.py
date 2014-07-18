@@ -58,6 +58,7 @@ def test_entry(char, state):
     return None
 
 def token2value(token):
+    # complex todo
     if token[0].isdigit():
         if '.' in token:
             token = float(token)
@@ -73,6 +74,7 @@ def token2value(token):
         else:
             raise Exception(token+' is not boolean')
     return token
+
 '''
 consume a char, and build, but it can not build tree 
 pre-condition:

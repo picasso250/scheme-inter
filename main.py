@@ -6,7 +6,7 @@ from scheme import evalue_code
 code = '(+ 137 349)';
 if True:
     evalue_code(code)
-
+evalue_code('(define size 2)')
 
 #evalue_code('(define (square x) (* x x))')
 # evalue_code('(square 21)')
