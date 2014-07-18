@@ -57,12 +57,21 @@ def test_entry(char, state):
             return entry
     return None
 
-def token2num(token):
+def token2value(token):
     if token[0].isdigit():
         if '.' in token:
             token = float(token)
         else:
             token = int(token)
+    elif token[0] == '#':
+        if len(token) != 2:
+            raise Exception(token+' is not boolean')
+        if token[1] == 't':
+            return True
+        elif token[1] == 'f':
+            return False
+        else:
+            raise Exception(token+' is not boolean')
     return token
 '''
 consume a char, and build, but it can not build tree 
@@ -90,7 +99,7 @@ def consume(char, state, ast, code, liter, level, pos):
         raise Exception(error)
     if token is not None:
         # print(token)
-        ast.append(token2num(token))
+        ast.append(token2value(token))
     if cmd == 'push':
         # print('push')
         _, sub_ast, code, _ = consume(code[0], 'normal', [], code[1:], '', level+1, pos+1)
@@ -106,7 +115,7 @@ def consume(char, state, ast, code, liter, level, pos):
     if len(code) == 0:
         if liter is not None and len(liter) > 0:
             if next_state == 'token':
-                ast.append(token2num(liter))
+                ast.append(token2value(liter))
             else:
                 raise Exception('error '+next_state)
         return 'end', ast, code, liter

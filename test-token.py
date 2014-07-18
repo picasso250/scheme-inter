@@ -8,6 +8,8 @@ code = '3'
 code = '3 4'
 code = '(define pi 3) pi'
 code = '(+ 2.7 10)'
+code = '#t'
+code = '#f'
 if False:
     code ='''
 (define (eval exp env)
