@@ -118,19 +118,17 @@ def evalue_lambda(body, param_name_list, params, scope):
     log.debug('evalue_lambda', body, param_name_list, params, scope, '==>', rs)
     return rs
 
-def user_func(body, params):
-    param_name_list = [p['liter'] for p in params]
+def user_func(body, param_name_list):
     return lambda params, scope: evalue_lambda(body, param_name_list, params, scope)
 
-def define_func(name_node, body):
-    for node in name_node:
-        name_node_type = node['type']
-        if name_node_type != 'token':
-            print('Error:', name_node_type)
+def define_func(name_list, body):
+    for node in name_list:
+        if not isinstance(node, str):
+            print(node)
+            raise Exception('Error: node is not token')
             return None
-    params = name_node[1:]
-    name_node = name_node[0]
-    name = name_node['liter']
+    params = name_list[1:]
+    name = name_list[0]
     if name in g_var_table:
         print('Warn:', name, 'in g_var_table')
     g_var_table[name] = user_func(body, params)
