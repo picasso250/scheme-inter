@@ -93,13 +93,14 @@ def define_var(name, value):
         raise Exception('Error: can not be defined')
     if name in g_var_table:
         print('Warn:', name, 'has been define')
-    g_var_table[name] = value
+    v, _ = evalue_expr(value)
+    g_var_table[name] = v
     return name, {}
 
 # evaluate user defined lambda
 def evalue_lambda(body, param_name_list, params, scope):
     log.debug('evalue_lambda params', param_name_list, params)
-    log.debug('scope', scope)
+    # log.debug('scope', scope)
     scope_var_table = scope
     i = 0
     for pname in param_name_list:
@@ -153,7 +154,7 @@ g_verb_table = {}
 g_verb_table['define'] = define
 
 def evalue_node(node, scope = {}):
-    log.debug('evalue_node', node)
+    # log.debug('evalue_node', node)
     if isinstance(node, int) or isinstance(node, float) or isinstance(node, bool):
         return node
     if isinstance(node, tuple):
@@ -185,7 +186,7 @@ def evalue_expr(expr, scope = {}):
         if not isinstance(lmd, str):
             print('Error, type of head element of list should be token')
             return None
-        log.debug('lambda name', lmd)
+        # log.debug('lambda name', lmd)
         param_list = expr[1:]
         if lmd not in g_var_table:
             # print('there is no lambda name', lmd)
@@ -194,7 +195,9 @@ def evalue_expr(expr, scope = {}):
             else:
                 func = g_verb_table[lmd]
                 value, more_scope = func(param_list)
-                return value, scope.update(more_scope)
+                scope = scope.update(more_scope)
+                print('scope', scope)
+                return value, scope
             return None
         func = g_var_table[lmd]
         log.debug('param list', param_list)
@@ -208,7 +211,11 @@ def evalue_ast(ast):
         return None
     env = {}
     for expr in ast:
-        val, env = evalue_expr(expr, env)
+        val, env_update = evalue_expr(expr, env)
+        print('env_update', env_update)
+        if env_update is not None:
+            env.update(env_update)
+        print('g_var_table', g_var_table)
     return val
 
 '''

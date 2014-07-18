@@ -4,9 +4,10 @@ from scheme import evalue_code
 #evalue_code('3')
 
 code = '(+ 137 349)';
-if True:
+if False:
     evalue_code(code)
-evalue_code('(define size 2)')
+#evalue_code('(define size 2)')
+evalue_code('(define size 2) size')
 
 #evalue_code('(define (square x) (* x x))')
 # evalue_code('(square 21)')
