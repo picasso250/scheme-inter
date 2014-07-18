@@ -7,6 +7,7 @@ code = '(+ 137 349 (- 2 1))'
 code = '3'
 code = '3 4'
 code = '(define pi 3) pi'
+code = '(+ 2.7 10)'
 if False:
     code ='''
 (define (eval exp env)

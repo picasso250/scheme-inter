@@ -17,7 +17,7 @@ when_normal = [
     [lambda c: True, 'token', lambda c, i: (c, None, None)],
     ]
 when_token = [
-    [lambda c: c.isalpha() or c.isdigit() or c in '-_?<>', 'token', lambda c, i: (i+c, None, None)],
+    [lambda c: c.isalpha() or c.isdigit() or c in '.-_?<>', 'token', lambda c, i: (i+c, None, None)],
     [lambda c: c.isspace(), 'normal', lambda c, i: (None, i, None)],
     [lambda c: c == ')', 'normal', lambda c, i: (None, i, None, 'pop')],
     [lambda c: True, 'error', lambda c, i: (None, None, 'token '+i+', should not follow by '+c)],
