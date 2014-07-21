@@ -4,88 +4,9 @@ import scanner
 log = logger.Log()
 log.debug_ = True
 
-def sum_(params, scope = {}):
-    print('sum of', params)
-    if len(params) == 0:
-        raise Exception('Error: + with no params')
-        return None
-    for p in params:
-        if not isinstance(p, int) and not isinstance(p, float):
-            print(p)
-            raise Exception('Error: type is not number')
-            return 0
-    return sum(params)
+import buildin
 
-def sub_(params, scope = {}):
-    if len(params) == 0:
-        print('- with no params')
-        return 0
-    i = 0
-    for p in params:
-        if not isinstance(p, int) and not isinstance(p, float):
-            print(p)
-            raise Exception('Error: type is not number')
-            return 0
-        if i == 0:
-            s = p
-        else:
-            s -= p
-        i += 1
-    return s
-
-def mul_(params, scope = {}):
-    if len(params) == 0:
-        print('* with no params')
-        return 0
-    s = 1
-    for p in params:
-        if not isinstance(p, int) and not isinstance(p, float):
-            print(p)
-            raise Exception('Error: type is not number')
-            return 0
-        else:
-            s *= p
-    return s
-
-def div_(params, scope = {}):
-    if len(params) == 0:
-        print('/ with no params')
-        return 0
-    i = 0
-    for p in params:
-        if not isinstance(p, int) and not isinstance(p, float):
-            print(p)
-            raise Exception('Error: type is not number')
-            return 0
-        if i == 0:
-            s = p
-        else:
-            s /= p
-        i += 1
-    return s
-
-def mod_(params, scope = {}):
-    if len(params) == 0:
-        print('% with no params')
-        return 0
-    len_params = len(params)
-    if len(params) != 2:
-        print('% need 2 params,', len_params, 'given')
-        return 0
-    for p in params:
-        if not isinstance(p, list) and p['type'] != 'token' and p['type'] != 'digit':
-            print('Error: type is not number, but', p['type'])
-            return 0
-    return evalue_expr(params[0], scope) % evalue_expr(params[1], scope)
-
-# build in func
-g_var_table = {
-    '+': sum_,
-    '-': sub_,
-    '*': mul_,
-    '/': div_,
-    '%': mod_
-    }
+g_var_table = buildin.g_var_table
 
 def define_var(name, value):
     if not isinstance(name, str):
@@ -98,28 +19,25 @@ def define_var(name, value):
     return name, {}
 
 # evaluate user defined lambda
-def evalue_lambda(body, param_name_list, params, scope):
+def evalue_lambda(name, body, param_name_list, params, scope):
     log.debug('evalue_lambda params', param_name_list, params)
     # log.debug('scope', scope)
     scope_var_table = scope
+    if len(param_name_list) != len(params):
+        raise Exception(name, 'params count not compatible, expected '+len(param_name_list)+', given', len(params))
+
+    # assign
     i = 0
     for pname in param_name_list:
-        log.debug('pname', pname)
-        param = params[i]
-        if not isinstance(param, list) and param['type'] == 'token':
-            scope_pname = param['liter']
-            log.debug('scope_pname', scope_pname)
-            if scope_pname in scope:
-                param = scope[scope_pname]
-        scope_var_table[pname] = param
+        scope[pname] = params[i]
         i += 1
-    log.debug('scope_var_table', scope_var_table)
-    rs = evalue_expr(body, scope_var_table)
-    log.debug('evalue_lambda', body, param_name_list, params, scope, '==>', rs)
-    return rs
+    rs = evalue_expr(body, scope)
+    log.debug('evalue_lambda', name, body, param_name_list, params, scope, '==>', rs)
+    v, s = rs
+    return v
 
-def user_func(body, param_name_list):
-    return lambda params, scope: evalue_lambda(body, param_name_list, params, scope)
+def user_func(name, body, param_name_list):
+    return lambda params, scope: evalue_lambda(name, body, param_name_list, params, scope)
 
 def define_func(name_list, body):
     for node in name_list:
@@ -129,10 +47,11 @@ def define_func(name_list, body):
             return None
     params = name_list[1:]
     name = name_list[0]
+    print('g_var_table', g_var_table)
     if name in g_var_table:
         print('Warn:', name, 'in g_var_table')
-    g_var_table[name] = user_func(body, params)
-    return name
+    g_var_table[name] = user_func(name, body, params)
+    return name, {}
 
 def define(params, scope = {}):
     if len(params) == 0:
@@ -199,7 +118,8 @@ def evalue_expr(expr, scope = {}):
             return None
         func = g_var_table[lmd]
         log.debug('param list', param_list)
-        return func([evalue_expr(p, scope)[0] for p in param_list]), scope
+        plist = [evalue_expr(p, scope)[0] for p in param_list]
+        return func(plist, scope), scope
     else:
         return evalue_node(expr, scope), scope
 
@@ -223,7 +143,7 @@ node ::= token|string|digit
 '''
 def evalue_code(code):
     ast = scanner.scan_code(code)
-    log.debug ('== ast', ast)
+    log.debug ('== ast ==', ast)
     val = evalue_ast(ast)
-    log.debug('=============',val)
+    log.debug('=== val ===',val)
     return val
