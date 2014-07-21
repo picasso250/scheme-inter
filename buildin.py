@@ -1,5 +1,4 @@
 def sum_(params, scope = {}):
-    print('sum of', params)
     if len(params) == 0:
         raise Exception('Error: + with no params')
         return None

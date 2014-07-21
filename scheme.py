@@ -47,7 +47,6 @@ def define_func(name_list, body):
             return None
     params = name_list[1:]
     name = name_list[0]
-    print('g_var_table', g_var_table)
     if name in g_var_table:
         print('Warn:', name, 'in g_var_table')
     g_var_table[name] = user_func(name, body, params)
@@ -130,10 +129,9 @@ def evalue_ast(ast):
     env = {}
     for expr in ast:
         val, env_update = evalue_expr(expr, env)
-        print('env_update', env_update)
+        log.debug('env_update', env_update)
         if env_update is not None:
             env.update(env_update)
-        print('g_var_table', g_var_table)
     return val
 
 '''
