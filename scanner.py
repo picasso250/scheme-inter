@@ -165,6 +165,7 @@ class Scanner(object):
             if self.match(c, e[0]):
                 next_state = e[1]
                 e[2]()
+                self.state = next_state
                 break
     
     def do_nothing(self):
