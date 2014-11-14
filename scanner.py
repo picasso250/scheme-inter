@@ -153,7 +153,9 @@ class Scanner(object):
         self.ast = None
         for c in code:
             self.eat_char(c)
-        return ast
+        if self.cur_list:
+            return self.cur_list
+        assert False
 
     def match(self, char, test):
         return test(char)
@@ -179,9 +181,10 @@ class Scanner(object):
 
     def end_list(self):
         print('end list')
-        _list = self.cur_list
-        self.cur_list = self.stack.pop()
-        self.cur_list.right = _list
+        if len(self.stack) > 0:
+            lst = self.cur_list
+            self.cur_list = self.stack.pop()
+            self.cur_list.append(lst)
 
     def start_token(self):
         print('start token', self.char)
@@ -312,4 +315,5 @@ def scan_code(code):
 
 if __name__ == '__main__':
     Scanner().scan('(1 2 3)')
+    Scanner().scan('((1 2) 3)')
     print('test')
