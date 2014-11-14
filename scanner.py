@@ -135,28 +135,32 @@ class Scanner(object):
         _escape = [
             [lambda c: True, self.STRING, self.on_escape],
         ]
-        self.trans_table = [
+        self.trans_table = {
             self.NORMAL: _normal,
             self.TOKEN: _token,
             self.STRING: _string,
             self.ESCAPE: _escape,
-        ]
+        }
         self.escape_table = escape_table
         self.char = None
         self.cur_list = None
         self.stack = []
         self.is_right = False
 
-    def scan(code):
+    def scan(self, code):
         self.state = self.NORMAL
         self.token_list_tree = None
         self.ast = None
         for c in code:
             self.eat_char(c)
         return ast
-        
+
+    def match(self, char, test):
+        return test(char)
+
     def eat_char(self, c):
         self.char = c
+        print('current char', c)
         for e in self.trans_table[self.state]:
             if self.match(c, e[0]):
                 next_state = e[1]
@@ -167,16 +171,19 @@ class Scanner(object):
         pass
 
     def start_list(self):
+        print('start list')
         if self.cur_list is not None:
             self.stack.append(self.cur_list)
-        self.cur_list = List()
+        self.cur_list = []
 
     def end_list(self):
+        print('end list')
         _list = self.cur_list
         self.cur_list = self.stack.pop()
         self.cur_list.right = _list
 
     def start_token(self):
+        print('start token', self.char)
         self.cur_token = ''
         self.on_token()
 
@@ -184,7 +191,9 @@ class Scanner(object):
         self.cur_token += self.char
 
     def end_token(self):
+        print('end token',self.cur_token)
         self.cur_list.append(Token(self.cur_token))
+        print(self.cur_list)
 
     def start_string(self):
         self.cur_string = ''
@@ -217,7 +226,7 @@ class Translator(object):
             return self.trans_token(t)
         return t
 
-    def self.eat_list(self, lst):
+    def eat_list(self, lst):
         if len(lst) == 0:
             return Tree()
         root = None
@@ -299,3 +308,7 @@ def scan_code(code):
     code = code.strip()
     state, ast, code, liter = consume(code[0], state, ast, code[1:], liter, 0, 0)
     return ast
+
+if __name__ == '__main__':
+    Scanner().scan('(1 2 3)')
+    print('test')
