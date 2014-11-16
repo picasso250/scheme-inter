@@ -1,49 +1,5 @@
-import logger
 import logging
-
-log = logger.Log()
-log.debug_ = True
-
-class Tree(object):
-    """docstring for Tree"""
-    def __init__(self):
-        super(Tree, self).__init__()
-        self.left = None
-        self.right = None
-
-class Token(object):
-    """docstring for Token"""
-    def __init__(self, token):
-        super(Token, self).__init__()
-        self.token = token
-
-    def __repr__(self):
-        return "<{}>".format(self.token)
-        
-class Number(object):
-    """docstring for Number"""
-    def __init__(self, value):
-        super(Number, self).__init__()
-        self.value = value
-
-class String(object):
-    """docstring for String"""
-    def __init__(self, text):
-        super(String, self).__init__()
-        self.text = text
-
-    def __repr__(self):
-        return '"{}"'.format(self.text)
-class Comment(object):
-    """docstring for Comment"""
-    def __init__(self, text):
-        super(Comment, self).__init__()
-        self.text = text
-    def __repr__(self):
-        return ';{}'.format(self.text)
-
-def parse_token(liter):
-    return Token(liter)
+from struct import *
 
 # this should be extended
 escape_table = {
@@ -219,6 +175,7 @@ class Translator(object):
 
 if __name__ == '__main__':
     print('test')
+    logging.basicConfig(level=logging.DEBUG)
     print(Scanner().scan('(1 2 3)'))
     print(Scanner().scan('((1 2) 3)'))
     print(Scanner().scan('("abc" 3)'))
