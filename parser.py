@@ -14,6 +14,7 @@ class Parser(object):
         super(Parser, self).__init__()
         self.token_list = token_list
         self.ast = None
+
     def parse(self):
         for token in token_list:
             if isinstance(token, Token):
@@ -28,10 +29,21 @@ class Parser(object):
                     self.on_token()
             elif isinstance(token, Comment):
                 pass
+            else:
+                self.token = token
+                self.on_token()
                     
     def on_token(self):
         if isinstance(self.ast, Tree):
             self.ast.left = self.token
         else:
             self.ast = self.token
-        
+    def start_list(self):
+        if isinstance(self.ast, Tree):
+            self.cur_tree
+            self.ast.left
+        else:
+            self.ast = Tree()
+    def end_list(self):
+        assert isinstance(self.ast, Tree)
+        self.stack.pop()
