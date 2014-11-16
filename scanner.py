@@ -34,6 +34,13 @@ class String(object):
 
     def __repr__(self):
         return '"{}"'.format(self.text)
+class Comment(object):
+    """docstring for Comment"""
+    def __init__(self, text):
+        super(Comment, self).__init__()
+        self.text = text
+    def __repr__(self):
+        return ';{}'.format(self.text)
 
 def parse_token(liter):
     return Token(liter)
@@ -119,14 +126,16 @@ class Scanner(object):
         self.TOKEN = 2
         self.STRING = 3
         self.ESCAPE = 4
+        self.COMMENT = 5
 
         _normal = [
             [lambda c: c in '()', self.NORMAL, self.one_token],
             [lambda c: c.isspace(), self.NORMAL, self.do_nothing],
             [lambda c: c == '"', self.STRING, self.start_string],
+            [lambda c: c == ';', self.COMMENT, self.start_comment],
             [lambda c: True, self.TOKEN, self.start_token],
         ]
-        is_token_char = lambda c: c.isalpha() or c.isdigit() or c in '.-_?<>'
+        is_token_char = lambda c: c.isalpha() or c.isdigit() or c in '.-_?<>!'
         _token = [
             [is_token_char, self.TOKEN, self.on_token],
             [lambda c: c.isspace(), self.NORMAL, self.end_token],
@@ -141,11 +150,16 @@ class Scanner(object):
         _escape = [
             [lambda c: True, self.STRING, self.on_escape],
         ]
+        _comment = [
+            [lambda c: c == '\n', self.NORMAL, self.end_comment],
+            [lambda c: True, self.COMMENT, self.on_comment],
+        ]
         self.trans_table = {
             self.NORMAL: _normal,
             self.TOKEN: _token,
             self.STRING: _string,
             self.ESCAPE: _escape,
+            self.COMMENT: _comment,
         }
         self.escape_table = escape_table
         self.char = None
@@ -206,6 +220,15 @@ class Scanner(object):
 
     def end_string(self):
         self.token_list.append(String(self.cur_string))
+
+    def start_comment(self):
+        self.cur_comment = ''
+
+    def on_comment(self):
+        self.cur_comment += self.char
+
+    def end_comment(self):
+        self.token_list.append(Comment(self.cur_comment))
 
     def on_escape(self):
         c = self.char
