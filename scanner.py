@@ -1,4 +1,5 @@
 import logger
+import logging
 
 log = logger.Log()
 log.debug_ = True
@@ -15,6 +16,9 @@ class Token(object):
     def __init__(self, token):
         super(Token, self).__init__()
         self.token = token
+
+    def __repr__(self):
+        return "<{}>".format(self.token)
         
 class Number(object):
     """docstring for Number"""
@@ -27,6 +31,9 @@ class String(object):
     def __init__(self, text):
         super(String, self).__init__()
         self.text = text
+
+    def __repr__(self):
+        return '"{}"'.format(self.text)
 
 def parse_token(liter):
     return Token(liter)
@@ -114,17 +121,16 @@ class Scanner(object):
         self.ESCAPE = 4
 
         _normal = [
-            [lambda c: c == '(', self.NORMAL, self.start_list],
-            [lambda c: c == ')', self.NORMAL, self.end_list],
+            [lambda c: c in '()', self.NORMAL, self.one_token],
             [lambda c: c.isspace(), self.NORMAL, self.do_nothing],
             [lambda c: c == '"', self.STRING, self.start_string],
             [lambda c: True, self.TOKEN, self.start_token],
         ]
-        is_token_char = lambda c: c.isalpha() or c.isdigit() or c in '-_?<>'
+        is_token_char = lambda c: c.isalpha() or c.isdigit() or c in '.-_?<>'
         _token = [
             [is_token_char, self.TOKEN, self.on_token],
             [lambda c: c.isspace(), self.NORMAL, self.end_token],
-            [lambda c: c == ')', self.NORMAL, self.end_list],
+            [lambda c: c == ')', self.NORMAL, [self.end_token, self.one_token]],
             [lambda c: True, self.ERROR, self.do_nothing],
         ]
         _string = [
@@ -143,9 +149,7 @@ class Scanner(object):
         }
         self.escape_table = escape_table
         self.char = None
-        self.cur_list = None
-        self.stack = []
-        self.is_right = False
+        self.token_list = []
 
     def scan(self, code):
         self.state = self.NORMAL
@@ -153,8 +157,8 @@ class Scanner(object):
         self.ast = None
         for c in code:
             self.eat_char(c)
-        if self.cur_list:
-            return self.cur_list
+        if self.token_list:
+            return self.token_list
         assert False
 
     def match(self, char, test):
@@ -162,32 +166,29 @@ class Scanner(object):
 
     def eat_char(self, c):
         self.char = c
-        print('current char', c)
+        logging.debug('current char %s', c)
         for e in self.trans_table[self.state]:
             if self.match(c, e[0]):
                 next_state = e[1]
-                e[2]()
+                self.do_callback(e[2])
                 self.state = next_state
                 break
-    
+
+    def do_callback(self, callback):
+        if isinstance(callback, list):
+            for cb in callback:
+                cb()
+        else:
+            callback()
+
     def do_nothing(self):
         pass
 
-    def start_list(self):
-        print('start list')
-        if self.cur_list is not None:
-            self.stack.append(self.cur_list)
-        self.cur_list = []
-
-    def end_list(self):
-        print('end list')
-        if len(self.stack) > 0:
-            lst = self.cur_list
-            self.cur_list = self.stack.pop()
-            self.cur_list.append(lst)
+    def one_token(self):
+        self.cur_token = self.char
+        self.end_token()
 
     def start_token(self):
-        print('start token', self.char)
         self.cur_token = ''
         self.on_token()
 
@@ -195,9 +196,7 @@ class Scanner(object):
         self.cur_token += self.char
 
     def end_token(self):
-        print('end token',self.cur_token)
-        self.cur_list.append(Token(self.cur_token))
-        print(self.cur_list)
+        self.token_list.append(Token(self.cur_token))
 
     def start_string(self):
         self.cur_string = ''
@@ -206,7 +205,7 @@ class Scanner(object):
         self.cur_string += self.char
 
     def end_string(self):
-        self.cur_list.append(String(self.cur_string))
+        self.token_list.append(String(self.cur_string))
 
     def on_escape(self):
         c = self.char
@@ -314,6 +313,8 @@ def scan_code(code):
     return ast
 
 if __name__ == '__main__':
-    Scanner().scan('(1 2 3)')
-    Scanner().scan('((1 2) 3)')
     print('test')
+    print(Scanner().scan('(1 2 3)'))
+    print(Scanner().scan('((1 2) 3)'))
+    print(Scanner().scan('("abc" 3)'))
+    print(Scanner().scan('("a\tbc" 3)'))
