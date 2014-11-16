@@ -341,3 +341,5 @@ if __name__ == '__main__':
     print(Scanner().scan('((1 2) 3)'))
     print(Scanner().scan('("abc" 3)'))
     print(Scanner().scan('("a\tbc" 3)'))
+    print(Scanner().scan('("a\\tbc" 3)'))
+    print(Scanner().scan(';xxx\n("a\\tbc" 3)'))
